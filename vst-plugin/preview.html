@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySynth VSTi - Interactive Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .plugin-window {
+            width: 700px;
+            height: 520px;
+            background: linear-gradient(180deg, #1E1E2E 0%, #11111B 100%);
+            border-radius: 12px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.6),
+                0 0 0 2px #45475A,
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00D4FF;
+        }
+
+        .plugin-name {
+            font-size: 26px;
+            font-weight: bold;
+            color: #CDD6F4;
+            letter-spacing: 2px;
+        }
+
+        .version {
+            font-size: 12px;
+            color: #6C7086;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 10px 15px;
+            display: grid;
+            grid-template-columns: 200px 240px 200px;
+            gap: 15px;
+            height: calc(100% - 70px);
+        }
+
+        /* Section Panel */
+        .section-panel {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #00D4FF;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* Controls Grid */
+        .controls-grid {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        /* Dropdown/ComboBox */
+        .combo-box {
+            width: 100%;
+            padding: 8px 12px;
+            background: #313244;
+            color: #CDD6F4;
+            border: 1px solid #45475A;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .combo-box:hover {
+            border-color: #00D4FF;
+        }
+
+        .combo-box:focus {
+            border-color: #00D4FF;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Knob Container */
+        .knob-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 75px;
+        }
+
+        /* Rotary Knob */
+        .knob {
+            width: 65px;
+            height: 65px;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .knob-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                transparent 0deg,
+                transparent 135deg,
+                #313244 135deg,
+                #313244 225deg,
+                transparent 225deg
+            );
+        }
+
+        .knob-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                transparent 135deg,
+                #00D4FF 135deg,
+                #00D4FF var(--angle, 225deg),
+                transparent var(--angle, 225deg)
+            );
+            transition: background 0.05s;
+        }
+
+        .knob-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #CDD6F4;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .knob-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 28px;
+            height: 3px;
+            background: #CDD6F4;
+            transform-origin: left center;
+            transform: translate(0, -50%) rotate(var(--rotation, -135deg));
+            border-radius: 2px;
+            z-index: 3;
+            pointer-events: none;
+            transition: transform 0.05s;
+        }
+
+        .knob-label {
+            margin-top: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #CDD6F4;
+            text-align: center;
+        }
+
+        .knob-value {
+            font-size: 9px;
+            color: #6C7086;
+            text-align: center;
+            min-height: 14px;
+        }
+
+        /* ADSR Section - Special Layout */
+        .adsr-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .adsr-knob {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .adsr-knob .knob-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #CDD6F4;
+        }
+
+        /* Master Section */
+        .master-section {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 20px;
+        }
+
+        .master-knob-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .master-knob .knob {
+            width: 90px;
+            height: 90px;
+        }
+
+        .master-knob .knob-center {
+            width: 20px;
+            height: 20px;
+        }
+
+        .master-knob .knob-indicator {
+            width: 35px;
+        }
+
+        /* Keyboard Visual */
+        .keyboard-visual {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #11111B;
+            border-top: 1px solid #45475A;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .key {
+            width: 22px;
+            height: 55px;
+            background: linear-gradient(180deg, #E8E8E8 0%, #D0D0D0 100%);
+            border: 1px solid #999;
+            border-radius: 0 0 4px 4px;
+            margin-right: 1px;
+            cursor: pointer;
+            transition: all 0.08s;
+        }
+
+        .key.black {
+            width: 14px;
+            height: 35px;
+            background: linear-gradient(180deg, #333 0%, #111 100%);
+            border-color: #000;
+            margin-left: -7px;
+            margin-right: -8px;
+            z-index: 1;
+        }
+
+        .key:hover {
+            background: linear-gradient(180deg, #FFF 0%, #E8E8E8 100%);
+        }
+
+        .key.black:hover {
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+        }
+
+        .key.active {
+            background: linear-gradient(180deg, #00D4FF 0%, #0099BB 100%) !important;
+            transform: translateY(2px);
+        }
+
+        .key.black.active {
+            background: linear-gradient(180deg, #00B8CC 0%, #007788 100%) !important;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            bottom: 62px;
+            left: 0;
+            right: 0;
+            padding: 5px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #6C7086;
+        }
+
+        .voice-count {
+            color: #00D4FF;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: #313244;
+            color: #CDD6F4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 30, 46, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #45475A;
+            max-width: 280px;
+            color: #CDD6F4;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-panel h3 {
+            color: #00D4FF;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-panel li::before {
+            content: "→ ";
+            color: #00D4FF;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00D4FF;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="plugin-window" id="pluginWindow">
+        <!-- Header -->
+        <div class="header">
+            <span class="plugin-name">MY SYNTH</span>
+            <span class="version">v1.0.0</span>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- OSCILLATOR SECTION -->
+            <div class="section-panel">
+                <div class="section-title">OSCILLATOR</div>
+                <select class="combo-box" id="oscType">
+                    <option value="saw">Sawtooth</option>
+                    <option value="square">Square</option>
+                    <option value="sine">Sine</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="noise">Noise</option>
+                </select>
+                <div class="controls-grid" style="margin-top: 15px;">
+                    <div class="knob-container">
+                        <div class="knob" data-param="pitch" data-min="-24" data-max="24" data-default="0" data-unit="st">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">PITCH</span>
+                        <span class="knob-value">0 st</span>
+                    </div>
+                    <div class="knob-container">
+                        <div class="knob" data-param="detune" data-min="-50" data-max="50" data-default="0" data-unit="¢">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">DETUNE</span>
+                        <span class="knob-value">0 ¢</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADSR SECTION -->
+            <div class="section-panel">
+                <div class="section-title">ENVELOPE</div>
+                <div class="adsr-row">
+                    <div class="adsr-knob">
+                        <div class="knob" data-param="attack" data-min="0.001" data-max="5" data-default="0.01" data-unit="s" data-scale="log">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">A</span>
+                        <span class="knob-value">0.01 s</span>
+                    </div>
+                    <div class="adsr-knob">
+                        <div class="knob" data-param="decay" data-min="0.001" data-max="5" data-default="0.2" data-unit="s" data-scale="log">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">D</span>
+                        <span class="knob-value">0.20 s</span>
+                    </div>
+                    <div class="adsr-knob">
+                        <div class="knob" data-param="sustain" data-min="0" data-max="1" data-default="0.7" data-unit="%">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">S</span>
+                        <span class="knob-value">70 %</span>
+                    </div>
+                    <div class="adsr-knob">
+                        <div class="knob" data-param="release" data-min="0.01" data-max="10" data-default="0.3" data-unit="s" data-scale="log">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">R</span>
+                        <span class="knob-value">0.30 s</span>
+                    </div>
+                </div>
+                
+                <!-- ADSR Visual -->
+                <svg viewBox="0 0 220 100" style="width: 100%; margin-top: auto; margin-bottom: 5px;" id="adsrVisual">
+                    <defs>
+                        <linearGradient id="envGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#00D4FF;stop-opacity:0.2" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Grid lines -->
+                    <line x1="10" y1="10" x2="210" y2="10" stroke="#45475A" stroke-width="0.5"/>
+                    <line x1="10" y1="50" x2="210" y2="50" stroke="#45475A" stroke-width="0.5"/>
+                    <line x1="10" y1="90" x2="210" y2="90" stroke="#45475A" stroke-width="0.5"/>
+                    <!-- ADSR Path -->
+                    <path id="adsrPath" d="M10,90 L40,10 L80,50 L170,50 L200,90" fill="url(#envGrad)" stroke="#00D4FF" stroke-width="2"/>
+                </svg>
+            </div>
+
+            <!-- FILTER SECTION -->
+            <div class="section-panel">
+                <div class="section-title">FILTER</div>
+                <select class="combo-box" id="filterType">
+                    <option value="lp">Low Pass</option>
+                    <option value="hp">High Pass</option>
+                    <option value="bp">Band Pass</option>
+                </select>
+                <div class="controls-grid" style="margin-top: 15px;">
+                    <div class="knob-container">
+                        <div class="knob" data-param="cutoff" data-min="20" data-max="20000" data-default="8000" data-unit="Hz" data-scale="exp">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">CUTOFF</span>
+                        <span class="knob-value">8 kHz</span>
+                    </div>
+                    <div class="knob-container">
+                        <div class="knob" data-param="resonance" data-min="0.1" data-max="10" data-default="1" data-unit="Q">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">RESO</span>
+                        <span class="knob-value">1.0 Q</span>
+                    </div>
+                    <div class="knob-container" style="margin-top: 10px;">
+                        <div class="knob" data-param="filterEnv" data-min="0" data-max="1" data-default="0.5" data-unit="">
+                            <div class="knob-track"></div>
+                            <div class="knob-fill"></div>
+                            <div class="knob-center"></div>
+                            <div class="knob-indicator"></div>
+                        </div>
+                        <span class="knob-label">ENV></span>
+                        <span class="knob-value">0.50</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MASTER SECTION -->
+            <div class="section-panel master-section">
+                <div class="section-title">MASTER</div>
+                <div class="master-knob-container">
+                    <div class="knob master-knob" data-param="gain" data-min="-60" data-max="6" data-default="-3" data-unit="dB">
+                        <div class="knob-track"></div>
+                        <div class="knob-fill"></div>
+                        <div class="knob-center"></div>
+                        <div class="knob-indicator"></div>
+                    </div>
+                    <span class="knob-label" style="font-size: 12px;">GAIN</span>
+                    <span class="knob-value">-3 dB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span>Voice Count: <span class="voice-count" id="voiceCount">0 / 8</span></span>
+            <span>CPU: <span id="cpuUsage">0%</span></span>
+            <span>Sample Rate: 44.1kHz</span>
+        </div>
+
+        <!-- Mini Keyboard -->
+        <div class="keyboard-visual" id="keyboard">
+            <!-- Keys will be generated by JS -->
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <h3>🎹 MySynth Preview</h3>
+        <p>This is a visual mockup of your VST plugin!</p>
+        <p><strong>Try it out:</strong></p>
+        <ul>
+            <li><strong>Drag knobs</strong> to adjust values</li>
+            <li><strong>Click keys</strong> to play notes</li>
+            <li><strong>Dropdowns</strong> change wave/filter type</li>
+        </ul>
+        <p style="margin-top: 10px;"><strong>Features:</strong></p>
+        <div>
+            <span class="feature-tag">5 Waveforms</span>
+            <span class="feature-tag">ADSR Envelope</span>
+            <span class="feature-tag">Resonant Filter</span>
+            <span class="feature-tag">8-Voice Polyphony</span>
+            <span class="feature-tag">Detune</span>
+        </div>
+        <p style="margin-top: 10px; font-size: 11px; color: #6C7086;">
+            💡 Want to add arpeggiator? Let me know!
+        </p>
+    </div>
+
+    <script>
+        // ===== KNOB INTERACTION =====
+        const knobs = document.querySelectorAll('.knob');
+        
+        knobs.forEach(knob => {
+            let isDragging = false;
+            let startY, startValue;
+            
+            const param = knob.dataset.param;
+            const min = parseFloat(knob.dataset.min);
+            const max = parseFloat(knob.dataset.max);
+            const defaultVal = parseFloat(knob.dataset.default);
+            const unit = knob.dataset.unit || '';
+            const scale = knob.dataset.scale || 'linear';
+            
+            // Initialize knob
+            let currentValue = defaultVal;
+            updateKnobVisual(knob, currentValue, min, max);
+            
+            function updateKnobVisual(knob, value, min, max) {
+                // Normalize to 0-1 range
+                let normalized;
+                if (scale === 'log') {
+                    normalized = (Math.log(value) - Math.log(min)) / (Math.log(max) - Math.log(min));
+                } else if (scale === 'exp') {
+                    normalized = (Math.log(value/min)) / (Math.log(max/min));
+                } else {
+                    normalized = (value - min) / (max - min);
+                }
+                normalized = Math.max(0, Math.min(1, normalized));
+                
+                // Convert to angle (-135 to 135 degrees = 270 degree range)
+                const angle = -135 + (normalized * 270);
+                knob.style.setProperty('--rotation', `${angle}deg`);
+                knob.style.setProperty('--angle', `${-135 + normalized * 270}deg`);
+                
+                // Update indicator rotation
+                const indicator = knob.querySelector('.knob-indicator');
+                if (indicator) indicator.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
+                
+                // Update value display
+                const container = knob.closest('.knob-container') || knob.parentElement;
+                const valueDisplay = container.querySelector('.knob-value');
+                if (valueDisplay) {
+                    let displayValue;
+                    if (unit === '%') {
+                        displayValue = `${Math.round(value * 100)} ${unit}`;
+                    } else if (unit === 'Hz') {
+                        displayValue = value >= 1000 ? `${(value/1000).toFixed(1)} kHz` : `${Math.round(value)} Hz`;
+                    } else if (unit === 'dB') {
+                        displayValue = `${value.toFixed(1)} ${unit}`;
+                    } else if (unit === 's') {
+                        displayValue = value < 1 ? `${value.toFixed(2)} ${unit}` : `${value.toFixed(2)} ${unit}`;
+                    } else {
+                        displayValue = typeof value === 'number' ? (Number.isInteger(value) ? value : value.toFixed(2)) : value;
+                        displayValue += ` ${unit}`;
+                    }
+                    valueDisplay.textContent = displayValue.trim();
+                }
+                
+                // Update ADSR visualization
+                updateADSRVisual();
+            }
+            
+            knob.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                startValue = currentValue;
+                document.body.style.cursor = 'ns-resize';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const delta = (startY - e.clientY) * 0.5;
+                const range = max - min;
+                let newValue = startValue + (delta / range) * (max - min);
+                newValue = Math.max(min, Math.min(max, newValue));
+                
+                // Snap for some parameters
+                if (scale === 'log' && param !== 'attack' && param !== 'decay' && param !== 'release') {
+                    newValue = parseFloat(newValue.toPrecision(3));
+                }
+                
+                currentValue = newValue;
+                updateKnobVisual(knob, currentValue, min, max);
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+            
+            // Double-click to reset
+            knob.addEventListener('dblclick', () => {
+                currentValue = defaultVal;
+                updateKnobVisual(knob, currentValue, min, max);
+            });
+        });
+
+        // ===== ADSR VISUALIZATION =====
+        function updateADSRVisual() {
+            const attack = getKnobValue('attack');
+            const decay = getKnobValue('decay');
+            const sustain = getKnobValue('sustain');
+            const release = getKnobValue('release');
+            
+            const svgWidth = 220;
+            const svgHeight = 100;
+            const padX = 10;
+            const padY = 10;
+            const drawW = svgWidth - 2 * padX;
+            const drawH = svgHeight - 2 * padY;
+            
+            // Normalize times (max ~5 seconds for visualization)
+            const totalTime = attack + decay + release + 0.1;
+            const scaleX = (t) => padX + (t / totalTime) * drawW * 0.85;
+            const scaleY = (v) => padY + (1 - v) * drawH;
+            
+            const path = document.getElementById('adsrPath');
+            if (path) {
+                const d = `
+                    M${padX},${svgHeight - padY}
+                    L${scaleX(0)},${scaleY(1)}
+                    L${scaleX(attack)},${padY}
+                    L${scaleX(attack + decay)},${scaleY(sustain)}
+                    L${scaleX(attack + decay + 3)},${scaleY(sustain)}
+                    L${scaleX(attack + decay + 3 + release)},${svgHeight - padY}
+                `;
+                path.setAttribute('d', d);
+            }
+        }
+        
+        function getKnobValue(paramName) {
+            const knob = document.querySelector(`[data-param="${paramName}"]`);
+            if (!knob) return 0.5;
+            const container = knob.closest('.knob-container') || knob.parentElement;
+            const valueDisplay = container.querySelector('.knob-value');
+            if (valueDisplay) {
+                const text = valueDisplay.textContent;
+                const num = parseFloat(text);
+                return isNaN(num) ? parseFloat(knob.dataset.default) : num;
+            }
+            return parseFloat(knob.dataset.default);
+        }
+
+        // ===== KEYBOARD =====
+        const keyboard = document.getElementById('keyboard');
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const startOctave = 3;
+        const numKeys = 18;
+        
+        for (let i = 0; i < numKeys; i++) {
+            const noteIndex = i % 12;
+            const octave = startOctave + Math.floor(i / 12);
+            const noteName = notes[noteIndex];
+            const isBlack = noteName.includes('#');
+            
+            const key = document.createElement('div');
+            key.className = `key ${isBlack ? 'black' : ''}`;
+            key.dataset.note = `${noteName}${octave}`;
+            key.dataset.frequency = (440 * Math.pow(2, ((i + 0) - 9) / 12)).toFixed(1);
+            
+            key.addEventListener('mousedown', () => playNote(key));
+            key.addEventListener('mouseup', () => stopNote(key));
+            key.addEventListener('mouseleave', () => stopNote(key));
+            
+            keyboard.appendChild(key);
+        }
+        
+        // Simple audio using Web Audio API
+        let audioCtx = null;
+        let activeOscillators = new Map();
+        let voiceCount = 0;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playNote(key) {
+            if (key.classList.contains('active')) return;
+            
+            initAudio();
+            key.classList.add('active');
+            
+            const freq = parseFloat(key.dataset.frequency);
+            const oscType = document.getElementById('oscType').value;
+            
+            // Create oscillator
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            // Map osc types
+            const typeMap = { sawtooth: 'sawtooth', square: 'square', sine: 'sine', triangle: 'triangle', noise: 'sine' };
+            osc.type = typeMap[oscType] || 'sawtooth';
+            osc.frequency.value = freq;
+            
+            // Apply envelope simulation
+            const attack = getKnobValue('attack');
+            const sustain = getKnobValue('sustain');
+            const masterGain = getKnobValue('gain');
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(Math.pow(10, masterGain/20) * 0.3, audioCtx.currentTime + attack);
+            gainNode.gain.linearRampToValueAtTime(Math.pow(10, masterGain/20) * 0.3 * sustain, audioCtx.currentTime + attack + 0.1);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            
+            activeOscillators.set(key.dataset.note, { osc, gainNode });
+            
+            voiceCount++;
+            updateVoiceCount();
+        }
+        
+        function stopNote(key) {
+            if (!key.classList.contains('active')) return;
+            
+            key.classList.remove('active');
+            
+            const noteData = activeOscillators.get(key.dataset.note);
+            if (noteData) {
+                const release = getKnobValue('release');
+                noteData.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                noteData.gainNode.gain.setValueAtTime(noteData.gainNode.gain.value, audioCtx.currentTime);
+                noteData.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + release);
+                noteData.osc.stop(audioCtx.currentTime + release + 0.1);
+                activeOscillators.delete(key.dataset.note);
+                
+                setTimeout(() => {
+                    voiceCount = Math.max(0, voiceCount - 1);
+                    updateVoiceCount();
+                }, release * 1000);
+            }
+        }
+        
+        function updateVoiceCount() {
+            document.getElementById('voiceCount').textContent = `${Math.min(voiceCount, 8)} / 8`;
+            document.getElementById('cpuUsage').textContent = `${Math.min(95, voiceCount * 8 + Math.random() * 5).toFixed(0)}%`;
+        }
+
+        // Keyboard shortcut support
+        const keyboardMap = {
+            'a': 0, 'w': 1, 's': 2, 'e': 3, 'd': 4, 'f': 5, 't': 6, 'g': 7, 'y': 8, 'h': 9,
+            'u': 10, 'j': 11, 'k': 12, 'o': 13, 'l': 14, 'p': 15, ';': 16, "'": 17
+        };
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const idx = keyboardMap[e.key.toLowerCase()];
+            if (idx !== undefined) {
+                const keys = keyboard.querySelectorAll('.key');
+                if (keys[idx]) playNote(keys[idx]);
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            const idx = keyboardMap[e.key.toLowerCase()];
+            if (idx !== undefined) {
+                const keys = keyboard.querySelectorAll('.key');
+                if (keys[idx]) stopNote(keys[idx]);
+            }
+        });
+
+        // Initialize ADSR visual on load
+        updateADSRVisual();
+    </script>
+</body>
+</html>
