@@ -1900,65 +1900,66 @@
 
     <!-- STANDARD VIEW (Default Interface) -->
     <div id="standardView" class="standard-view">
-        <!-- PRESET BROWSER SIDEBAR -->
-        <div class="preset-browser">
-            <div class="browser-header">
-                <h2>Preset Browser</h2>
-                <div class="vibe-search-container">
-                    <span class="vibe-search-icon">🔍</span>
-                    <input type="text" 
-                           id="vibeSearchInput" 
-                           class="vibe-search-input" 
-                           placeholder="Vibe search... (e.g., 'Soft Lead', 'Warm Pad')">
-                    <div id="vibeSuggestions" class="vibe-suggestions"></div>
+        <!-- TOP BAR: View Toggle + Current Preset Info -->
+        <div class="standard-topbar">
+            <div class="view-toggle">
+                <button id="viewToggleStandard" class="view-toggle-btn active">
+                    📱 Standard
+                </button>
+                <button id="viewToggleAdvanced" class="view-toggle-btn">
+                    ⚙️ Advanced
+                </button>
+            </div>
+
+            <div class="current-preset-display">
+                <div class="current-preset-info">
+                    <div id="currentPresetNameStd" class="current-preset-name">Select a preset...</div>
+                    <div id="currentPresetMetaStd" class="current-preset-meta">Browse the library →</div>
                 </div>
             </div>
 
-            <!-- Category Filters -->
-            <div id="categoryFilters" class="category-filters">
-                <!-- Populated by JS -->
-            </div>
-
-            <!-- Preset List -->
-            <div id="presetListContainer" class="preset-list">
-                <!-- Populated by JS -->
+            <div class="mini-visualizers">
+                <div class="mini-viz-box">
+                    <canvas id="miniWaveformCanvas"></canvas>
+                    <span class="mini-viz-label">Waveform</span>
+                </div>
+                <div class="mini-viz-box">
+                    <canvas id="miniSpectrumCanvas"></canvas>
+                    <span class="mini-viz-label">Spectrum</span>
+                </div>
             </div>
         </div>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT AREA (Grid: Preset Browser | Visualizer+Tools) -->
         <div class="standard-main">
-            <!-- Top Bar with View Toggle & Visualizers -->
-            <div class="standard-topbar">
-                <div class="view-toggle">
-                    <button id="viewToggleStandard" class="view-toggle-btn active">
-                        📱 Standard
-                    </button>
-                    <button id="viewToggleAdvanced" class="view-toggle-btn">
-                        ⚙️ Advanced
-                    </button>
-                </div>
-
-                <div class="current-preset-display">
-                    <div class="current-preset-info">
-                        <div id="currentPresetNameStd" class="current-preset-name">Select a preset...</div>
-                        <div id="currentPresetMetaStd" class="current-preset-meta">Browse the library →</div>
+            <!-- PRESET BROWSER (Left Panel) -->
+            <div class="preset-browser">
+                <div class="browser-header">
+                    <h2>Preset Browser</h2>
+                    <div class="vibe-search-container">
+                        <span class="vibe-search-icon">🔍</span>
+                        <input type="text" 
+                               id="vibeSearchInput" 
+                               class="vibe-search-input" 
+                               placeholder="Vibe search... (e.g., 'Soft Lead', 'Warm Pad')">
+                        <div id="vibeSuggestions" class="vibe-suggestions"></div>
                     </div>
                 </div>
 
-                <div class="mini-visualizers">
-                    <div class="mini-viz-box">
-                        <canvas id="miniWaveformCanvas"></canvas>
-                        <span class="mini-viz-label">Waveform</span>
-                    </div>
-                    <div class="mini-viz-box">
-                        <canvas id="miniSpectrumCanvas"></canvas>
-                        <span class="mini-viz-label">Spectrum</span>
-                    </div>
+                <!-- Category Filters -->
+                <div id="categoryFilters" class="category-filters">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Preset List -->
+                <div id="presetListContainer" class="preset-list">
+                    <!-- Populated by JS -->
                 </div>
             </div>
 
-            <!-- Stage: Main Visualizer + Keyboard -->
+            <!-- RIGHT PANEL: Visualizer + Patch Tools -->
             <div class="standard-stage">
+                <!-- Main Visualizer (Large) -->
                 <div class="main-visualizer">
                     <canvas id="mainVisualizerCanvas"></canvas>
                     <div class="visualizer-overlay">
@@ -1968,40 +1969,32 @@
                     </div>
                 </div>
 
-                <!-- Keyboard (compact) -->
-                <div class="standard-keyboard">
-                    <div class="keyboard" id="standardKeyboard">
-                        <!-- Generated by core.js keyboard system -->
+                <!-- Patch Tools Panel (Prominent) -->
+                <div class="patch-tools-panel">
+                    <div class="patch-tools-header">
+                        <span class="patch-tools-title">🛠️ Patch Manipulation Tools</span>
                     </div>
-                </div>
-            </div>
-
-            <!-- Patch Tools Panel -->
-            <div class="patch-tools-panel">
-                <div class="patch-tools-header">
-                    <span class="patch-tools-title">🛠️ Patch Manipulation Tools</span>
-                </div>
-                <div class="patch-tools-grid">
-                    <div class="patch-tool-card" data-tool="variation-low">
-                        <div class="patch-tool-icon">🎲</div>
-                        <div class="patch-tool-name">Subtle Variation</div>
-                        <div class="patch-tool-desc">Light tweaks</div>
-                    </div>
-                    <div class="patch-tool-card" data-tool="variation-med">
-                        <div class="patch-tool-icon">🎛️</div>
-                        <div class="patch-tool-name">Medium Variation</div>
-                        <div class="patch-tool-desc">Noticeable changes</div>
-                    </div>
-                    <div class="patch-tool-card" data-tool="variation-high">
-                        <div class="patch-tool-icon">⚡</div>
-                        <div class="patch-tool-name">Extreme Variation</div>
-                        <div class="patch-tool-desc">Dramatic mutation</div>
-                    </div>
-                    <div class="patch-tool-card" data-tool="randomize">
-                        <div class="patch-tool-icon">🎰</div>
-                        <div class="patch-tool-name">Smart Randomize</div>
-                        <div class="patch-tool-desc">Intelligent chaos</div>
-                    </div>
+                    <div class="patch-tools-grid">
+                        <div class="patch-tool-card" data-tool="variation-low">
+                            <div class="patch-tool-icon">🎲</div>
+                            <div class="patch-tool-name">Subtle Variation</div>
+                            <div class="patch-tool-desc">Light tweaks</div>
+                        </div>
+                        <div class="patch-tool-card" data-tool="variation-med">
+                            <div class="patch-tool-icon">🎛️</div>
+                            <div class="patch-tool-name">Medium Variation</div>
+                            <div class="patch-tool-desc">Noticeable changes</div>
+                        </div>
+                        <div class="patch-tool-card" data-tool="variation-high">
+                            <div class="patch-tool-icon">⚡</div>
+                            <div class="patch-tool-name">Extreme Variation</div>
+                            <div class="patch-tool-desc">Dramatic mutation</div>
+                        </div>
+                        <div class="patch-tool-card" data-tool="randomize">
+                            <div class="patch-tool-icon">🎰</div>
+                            <div class="patch-tool-name">Smart Randomize</div>
+                            <div class="patch-tool-desc">Intelligent chaos</div>
+                        </div>
                     <div class="patch-tool-card" data-tool="warmer">
                         <div class="patch-tool-icon">🔥</div>
                         <div class="patch-tool-name">Make Warmer</div>
@@ -2027,6 +2020,13 @@
                         <input type="range" id="morphAmountSlider" class="morph-slider" min="0" max="100" value="50">
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- KEYBOARD (Bottom, Scrunched - Inconsequential) -->
+        <div class="standard-keyboard">
+            <div class="keyboard" id="standardKeyboard">
+                <!-- Generated by core.js keyboard system -->
             </div>
         </div>
     </div>
