@@ -25,20 +25,42 @@
 
     // ===== INITIALIZATION =====
     function initStandardView() {
-        if (!standardView) return;
+        try {
+            if (!standardView) {
+                console.error('❌ Standard View container not found!');
+                return;
+            }
 
-        console.log('🎨 Initializing Standard View...');
-        
-        setupViewToggle();
-        setupVibeSearch();
-        setupCategoryFilters();
-        renderPresetList(ALL_INDUSTRY_PRESETS);
-        setupPatchTools();
-        setupMiniVisualizers();
-        setupMainVisualizer();  // Initialize the main preview visualizer
+            console.log('🎨 Initializing Standard View...');
+            
+            setupViewToggle();
+            setupVibeSearch();
+            setupCategoryFilters();
+            
+            // Check if preset library is loaded
+            if (typeof ALL_INDUSTRY_PRESETS !== 'undefined') {
+                renderPresetList(ALL_INDUSTRY_PRESETS);
+            } else {
+                console.warn('⚠️ Preset library not loaded yet');
+            }
+            
+            setupPatchTools();
+            setupMiniVisualizers();
+            setupMainVisualizer();  // Initialize the main preview visualizer
 
-        // Show standard view by default
-        showStandardView();
+            // Show standard view by default
+            showStandardView();
+            
+            console.log('✅ Standard View initialized successfully!');
+        } catch (error) {
+            console.error('❌ Error initializing Standard View:', error);
+            
+            // Fallback: still try to show the view
+            if (standardView) {
+                standardView.classList.add('active');
+                document.body.classList.add('has-standard-view');
+            }
+        }
     }
 
     // ===== VIEW TOGGLE =====
