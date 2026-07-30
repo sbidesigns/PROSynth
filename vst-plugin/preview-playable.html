@@ -841,8 +841,8 @@ document.querySelectorAll('.knob').forEach(knob => {
                          unit === 'st' ? `${Math.round(value)} st` :
                          unit === '¢' ? `${Math.round(value)} ¢` :
                          unit === 's' ? `${value.toFixed(2)} s` :
-                         Number.isInteger(value) ? value : value.toFixed(2);
-            valEl.textContent = display.trim();
+                         Number.isInteger(value) ? String(value) : String(value.toFixed(2));
+            valEl.textContent = display;
         }
         updateADSRVisual();
         updateWaveform();
