@@ -2398,13 +2398,20 @@
             }
         });
         
-        // Notification helper
-        function showNotification(message) {
+        // Notification helper - SMALL and non-intrusive
+        function showNotification(message, small = false) {
+            // Remove existing notification first
+            const existing = document.querySelector('.synth-notification');
+            if(existing) existing.remove();
+            
             const notif = document.createElement('div');
-            notif.style.cssText = `position:fixed;top:20px;right:20px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#000;padding:12px 20px;border-radius:8px;font-size:12px;font-weight:600;z-index:99999;animation:fadeIn 0.3s ease;box-shadow:0 10px 40px rgba(0,0,0,0.5);`;
+            notif.className = 'synth-notification';
+            notif.style.cssText = small 
+                ? `position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),var(--accent3));color:#000;padding:6px 14px;border-radius:20px;font-size:10px;font-weight:600;z-index:99999;animation:fadeIn 0.2s ease;box-shadow:0 4px 15px rgba(0,0,0,0.4);white-space:nowrap;`
+                : `position:fixed;top:15px;right:15px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#000;padding:8px 16px;border-radius:8px;font-size:11px;font-weight:600;z-index:99999;animation:fadeIn 0.2s ease;box-shadow:0 8px 25px rgba(0,0,0,0.4);max-width:250px;`;
             notif.textContent = message;
             document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 2500);
+            setTimeout(() => notif.remove(), small ? 1800 : 2200);
         }
         
         // ===== SMART RANDOMIZE =====
@@ -2449,25 +2456,25 @@
             const basePitch = profile.oscType === 'sine' ? 0 : (profile.oscType === 'square' ? -12 : 0);
             
             const targetValues = {
-                // PITCH: Always snapped to semitones - NEVER out of tune!
+                // PITCH: Always exact semitones - NEVER out of tune!
                 osc1Pitch: basePitch,
-                // DETUNE: Keep minimal and musically pleasing (max ±15 cents)
-                osc1Detune: Math.round((profile.detune || 5) * (1 + tinyVariation())),
+                // DETUNE: ZERO for perfect tuning!
+                osc1Detune: 0,
                 unisonVoices: profile.unison || 3,
-                // UNISON DETUNE: Capped at reasonable spread (5-30 cents per voice)
-                unisonDetune: Math.min(30, Math.max(5, Math.round((profile.detune || 8) * (1 + tinyVariation())))),
+                // UNISON DETUNE: Minimal spread that sounds GOOD (max 10 cents)
+                unisonDetune: Math.min(10, Math.max(2, Math.round((profile.detune || 5) * 0.5))),
                 attack: Math.max(0.001, profile.attack * (1 + tinyVariation())),
                 decay: Math.max(0.01, profile.decay * (1 + tinyVariation())),
                 sustain: Math.max(0, Math.min(100, profile.sustain * (1 + tinyVariation()))),
                 release: Math.max(0.01, profile.release * (1 + tinyVariation())),
                 filter1Cutoff: Math.round(profile.filterCutoff * (1 + tinyVariation())),
-                filter1Resonance: Math.min(80, Math.round(profile.filterReso * (1 + tinyVariation()))),
+                filter1Resonance: Math.min(60, Math.round(profile.filterReso * (1 + tinyVariation()))),
                 reverbSize: profile.reverb || 30,
-                reverbMix: Math.min(70, (profile.reverb || 30) * 0.8),
+                reverbMix: Math.min(60, (profile.reverb || 30) * 0.7),
                 delayTime: Math.round((profile.delay || 20) * 10),
-                delayFeedback: Math.min(55, (profile.delay || 20) * 0.4),
+                delayFeedback: Math.min(45, (profile.delay || 20) * 0.35),
                 driveAmount: profile.drive || 0,
-                masterGain: Math.round(Math.random() * 6 - 3)
+                masterGain: Math.round(Math.random() * 4 - 2)
             };
             
             // Set oscillator type
@@ -3026,20 +3033,10 @@
         }
         
         function applySongStarter(starter) {
-            saveToHistory();
+            // DO NOT change any instrument settings - only generate melody!
+            // saveToHistory(); // Don't even save history - this is just a melody demo
             
-            // Apply sound profile (minimal changes - keeps user's instrument feel)
-            Object.entries(starter.soundProfile).forEach(([key, value]) => {
-                if(['osc1Type'].includes(key)) {
-                    const el = document.getElementById(key);
-                    if(el) el.value = value;
-                    return;
-                }
-                const knob = document.querySelector(`[data-param="${key}"]`);
-                if(knob) setKnobValue(knob, parseFloat(value));
-            });
-            
-            // Generate intelligent melody
+            // Generate intelligent melody ONLY
             const generator = new MelodyGenerator(
                 starter.melodyConfig.scale,
                 starter.melodyConfig.rootNote,
@@ -3054,11 +3051,7 @@
             // Start playing the melody automatically
             startMelodyPlayback(pattern, starter.melodyConfig, starter);
             
-            currentPresetName = `Song Starter: ${starter.genre}`;
-            document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
-            updateADSRVisual();
-            updateWaveform();
-            showNotification(`${starter.icon} ${starter.genre} - Melody Generated!`);
+            showNotification(`${starter.icon} Playing: ${starter.genre}`, true);
         }
         
         function displayGeneratedPattern(pattern, starter) {
@@ -3111,22 +3104,39 @@
             
             initAudio();
             
+            // Resume audio context if suspended (browser autoplay policy)
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    startPlayingLoop(pattern, config, starter);
+                });
+            } else {
+                startPlayingLoop(pattern, config, starter);
+            }
+        }
+        
+        function startPlayingLoop(pattern, config, starter) {
             const bpm = config.bpm || 120;
             const stepDuration = (60 / bpm) / 4 * 1000; // 16th notes in ms
             
             let currentStep = 0;
+            let isPlaying = true;
+            
+            window.currentMelodyState = { stop: () => isPlaying = false };
             
             function playStep() {
+                if(!isPlaying) return;
+                
                 // Highlight current step in UI
                 const steps = document.querySelectorAll('#stepSequencer .step');
                 steps.forEach((s, i) => {
                     s.style.transform = i === currentStep ? 'scale(1.15)' : 'scale(1)';
-                    s.style.boxShadow = i === currentStep ? `0 0 15px ${starter.color}` : 'none';
+                    s.style.boxShadow = i === currentStep ? `0 0 12px ${starter.color}` : 'none';
+                    s.style.borderColor = i === currentStep ? starter.color : (s.dataset.rest ? 'var(--border)' : starter.color + '60');
                 });
                 
                 const step = pattern[currentStep];
                 
-                // Play the notes
+                // Play the notes using YOUR current instrument settings
                 if(step.notes.length > 0 && (!step.probability || Math.random() * 100 < step.probability)) {
                     step.notes.forEach(midiNote => {
                         playMidiNote(midiNote, step.velocity, step.duration / 100 * stepDuration);
@@ -3139,7 +3149,7 @@
                 melodyTimeoutId = setTimeout(playStep, stepDuration);
             }
             
-            activeMelodyPlayer = { stop: () => clearTimeout(melodyTimeoutId) };
+            activeMelodyPlayer = { stop: () => { isPlaying = false; clearTimeout(melodyTimeoutId); } };
             playStep();
         }
         
