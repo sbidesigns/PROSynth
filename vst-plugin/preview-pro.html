@@ -6104,23 +6104,23 @@
         let midiInput = null;
         let midiIndicator = document.getElementById('midiIndicator');
         let midiStatusText = document.getElementById('midiStatusText');
-        
+
         async function initMIDI() {
             if (!navigator.requestMIDIAccess) {
                 console.log('Web MIDI API not supported');
                 return;
             }
-            
+
             try {
                 midiAccess = await navigator.requestMIDIAccess({ sysex: false });
-                
-                midiAccess.inputs.forEach(input => {
+
+                midiAccess.inputs.forEach(function(input) {
                     input.onmidimessage = handleMIDIMessage;
                     midiInput = input;
                     updateMIDIStatus(true, input.name);
                 });
-                
-                midiAccess.onstatechange = (e) => {
+
+                midiAccess.onstatechange = function(e) {
                     if (e.port.type === 'input') {
                         if (e.port.state === 'connected' && !midiInput) {
                             e.port.onmidimessage = handleMIDIMessage;
@@ -6131,15 +6131,15 @@
                             updateMIDIStatus(false);
                         }
                     }
-                });
-                
+                };
+
                 if (!midiInput && midiAccess.inputs.size > 0) {
-                    const firstInput = midiAccess.inputs.values().next().value;
+                    var firstInput = midiAccess.inputs.values().next().value;
                     firstInput.onmidimessage = handleMIDIMessage;
                     midiInput = firstInput;
                     updateMIDIStatus(true, firstInput.name);
                 }
-                
+
             } catch (err) {
                 console.log('MIDI access denied:', err);
             }
@@ -6570,7 +6570,7 @@
                 xyPoint.style.left = `${x}%`;
                 xyPoint.style.top = `${y}%`;
                 xyValueX.textContent = `${Math.round(x)}%`;
-                xyValueY.textContent = `${Math.round(y)}%`;\                
+                xyValueY.textContent = `${Math.round(y)}%`;
                 applyXYModulation(x, y);
             };
             
@@ -6917,7 +6917,7 @@
         // Global state for all creative tools
         const CreativeTools = {
             morph: { x: 0.5, y: 0.5, corners: { tl: null, tr: null, bl: null, br: null }, presets: {} },
-            tags: currentTags: [], rating: 0, genre: '', notes: '',
+            tags: { currentTags: [], rating: 0, genre: '', notes: '' },
             evolution: { parentA: null, parentB: null, children: [] },
             sculptor: { points: [], tool: 'draw', harmonics: new Array(16).fill(0).map((_,i) => i===1?1:0) },
             modCanvas: { paths: {}, currentLayer: 'lfo1', currentTool: 'freehand' },
