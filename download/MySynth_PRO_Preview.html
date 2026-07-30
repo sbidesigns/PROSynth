@@ -2414,97 +2414,437 @@
             setTimeout(() => notif.remove(), small ? 1800 : 2200);
         }
         
-        // ===== SMART RANDOMIZE =====
-        const soundProfiles = [
-            { name: 'Fat Lead', oscType:'sawtooth', unison:5, detune:18, attack:0.02, decay:0.3, sustain:70, release:0.4, filterCutoff:4000, filterReso:25, reverb:30, delay:25 },
-            { name: 'Warm Pad', oscType:'sawtooth', unison:7, detune:12, attack:0.8, decay:0.5, sustain:85, release:1.5, filterCutoff:2000, filterReso:15, reverb:55, delay:35 },
-            { name: 'Pluck Bass', oscType:'triangle', unison:2, detune:5, attack:0.005, decay:0.15, sustain:20, release:0.2, filterCutoff:3000, filterReso:45, reverb:15, delay:10 },
-            { name: 'Crystal Bell', oscType:'sine', unison:3, detune:3, attack:0.001, decay:1.2, sustain:10, release:2.0, filterCutoff:8000, filterReso:60, reverb:65, delay:20 },
-            { name: 'Dirty Bass', oscType:'square', unison:4, detune:8, attack:0.01, decay:0.4, sustain:60, release:0.3, filterCutoff:800, filterReso:70, reverb:10, delay:15, drive:45 },
-            { name: 'Soft Piano', oscType:'triangle', unison:3, detune:4, attack:0.01, decay:0.3, sustain:40, release:1.0, filterCutoff:5000, filterReso:10, reverb:40, delay:20 },
-            { name: 'Epic Strings', oscType:'sawtooth', unison:8, detune:15, attack:1.0, decay:0.8, sustain:90, release:2.5, filterCutoff:2500, filterReso:20, reverb:70, delay:40 },
-            { name: 'Aggressive Synth', oscType:'square', unison:6, detune:25, attack:0.001, decay:0.2, sustain:75, release:0.15, filterCutoff:3500, filterReso:55, reverb:20, delay:25, drive:30 },
-            { name: 'Ambient Drone', oscType:'sine', unison:4, detune:30, attack:2.0, decay:1.5, sustain:95, release:4.0, filterCutoff:1500, filterReso:5, reverb:80, delay:50 },
-            { name: 'Vintage Organ', oscType:'square', unison:2, detune:2, attack:0.01, decay:0.1, sustain:90, release:0.3, filterCutoff:6000, filterReso:8, reverb:25, delay:15 },
-            { name: 'Brass Section', oscType:'sawtooth', unison:5, detune:10, attack:0.15, decay:0.3, sustain:80, release:0.5, filterCutoff:3000, filterReso:25, reverb:35, delay:20 },
-            { name: 'Digital Lead', oscType:'sine', unison:4, detune:6, attack:0.005, decay:0.2, sustain:65, release:0.3, filterCutoff:7000, filterReso:35, reverb:20, delay:30 },
-            { name: 'Deep Sub', oscType:'sine', unison:1, detune:0, attack:0.01, decay:0.5, sustain:80, release:0.5, filterCutoff:400, filterReso:30, reverb:15, delay:10 },
-            { name: 'Bright Arp', oscType:'square', unison:3, detune:8, attack:0.002, decay:0.1, sustain:50, release:0.15, filterCutoff:5500, filterReso:40, reverb:25, delay:35 },
-            { name: 'Dark Atmosphere', oscType:'sawtooth', unison:6, detune:20, attack:1.5, decay:1.0, sustain:75, release:3.0, filterCutoff:1000, filterReso:12, reverb:75, delay:55 },
-            { name: 'Metallic FM', oscType:'fm', unison:2, detune:15, attack:0.01, decay:0.4, sustain:55, release:0.6, filterCutoff:4500, filterReso:50, reverb:30, delay:20 },
-            { name: 'Glitchy', oscType:'square', unison:3, detune:35, attack:0.001, decay:0.08, sustain:30, release:0.1, filterCutoff:6500, filterReso:65, reverb:10, delay:5, drive:55 },
-            { name: 'Lush Pad', oscType:'sawtooth', unison:9, detune:8, attack:1.2, decay:0.6, sustain:88, release:3.0, filterCutoff:2800, filterReso:12, reverb:68, delay:42 },
-            { name: 'Percussive', oscType:'noise', unison:1, detune:0, attack:0.001, decay:0.12, sustain:5, release:0.08, filterCutoff:9000, filterReso:40, reverb:18, delay:8 },
-            { name: 'Wobbly Bass', oscType:'sawtooth', unison:3, detune:6, attack:0.01, decay:0.3, sustain:70, release:0.4, filterCutoff:1200, filterReso:65, reverb:20, delay:25, drive:40 }
+        // ===== WORLD-CLASS RANDOMIZE SYSTEM =====
+        // Based on parameters from industry-leading instruments:
+        // Serum, Massive X, Omnisphere, Minimoog Model D, Prophet-5,
+        // Jupiter-8, DX7, Access Virus, Arturia Pigments, Korg MS-20
+        
+        const PRO_SOUND_LIBRARY = [
+            // ===== ICONIC LEADS (Serum/Massive style) =====
+            {
+                name: '🎸 Supersaw Anthem',
+                inspiration: 'Sawtooth Legend / Serum Lead A',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 16, unisonDetune: 12,
+                    attack: 0.008, decay: 0.35, sustain: 78, release: 0.6,
+                    filterCutoff: 3800, filterReso: 28, filterEnv: 45,
+                    reverbSize: 55, reverbMix: 32,
+                    delayTime: 340, delayFeedback: 38, delayMix: 22,
+                    chorusDepth: 48, chorusRate: 1.8,
+                    driveAmount: 18, driveTone: 65,
+                    eqLow: 3, eqMid: 2, eqHigh: 4,
+                    lfo1Rate: 0.14, lfo1Depth: 15, lfo1Target: 'cutoff',
+                    compRatio: 4, compMakeup: 3
+                }
+            },
+            {
+                name: '⚡ Trance Gate Lead',
+                inspiration: 'Access Virus TI / Gate Lead',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 8, unisonDetune: 18,
+                    attack: 0.002, decay: 0.18, sustain: 85, release: 0.25,
+                    filterCutoff: 4200, filterReso: 35, filterEnv: 65,
+                    reverbSize: 45, reverbMix: 28,
+                    delayTime: 150, delayFeedback: 42, delayMix: 35,
+                    chorusDepth: 55, chorusRate: 2.4,
+                    driveAmount: 25, driveTone: 72,
+                    eqLow: 4, eqMid: 5, eqHigh: 6,
+                    lfo1Rate: 0.08, lfo1Depth: 22, lfo1Target: 'cutoff',
+                    lfo2Rate: 6.2, lfo2Depth: 8, lfo2Target: 'volume'
+                }
+            },
+            {
+                name: '🔥 Aggressive Reese',
+                inspiration: 'Massive Reese Bass / Neurofunk',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 7,
+                    unison: 4, unisonDetune: 35,
+                    attack: 0.001, decay: 0.12, sustain: 70, release: 0.15,
+                    filterCutoff: 2200, filterReso: 58, filterEnv: 75,
+                    reverbSize: 25, reverbMix: 15,
+                    delayTime: 80, delayFeedback: 18, delayMix: 10,
+                    driveAmount: 62, driveTone: 45,
+                    eqLow: 8, eqMid: 4, eqHigh: -2,
+                    lfo1Rate: 0.06, lfo1Depth: 45, lfo1Target: 'cutoff',
+                    lfo2Rate: 0.15, lfo2Depth: 30, lfo2Target: 'detune'
+                }
+            },
+            {
+                name: '✨ Glassy FM Lead',
+                inspiration: 'DX7 E. Piano 1 / FM Bell Lead',
+                category: 'Lead',
+                params: {
+                    oscType: 'sine', oscPitch: 0, oscDetune: 0,
+                    unison: 4, unisonDetune: 6,
+                    attack: 0.015, decay: 0.45, sustain: 55, release: 0.8,
+                    filterCutoff: 7200, filterReso: 22, filterEnv: 20,
+                    reverbSize: 68, reverbMix: 42,
+                    delayTime: 280, delayFeedback: 32, delayMix: 25,
+                    chorusDepth: 65, chorusRate: 3.8,
+                    eqLow: -2, eqMid: 4, eqHigh: 8,
+                    lfo1Rate: 5.2, lfo1Depth: 6, lfo1Target: 'pitch'
+                }
+            },
+            
+            // ===== PROFESSIONAL BASSES (Minimoog/MS-20 style) =====
+            {
+                name: '🎵 Moog Sub Bass',
+                inspiration: 'Minimoog Model D / Classic Sub',
+                category: 'Bass',
+                params: {
+                    oscType: 'sine', oscPitch: -24, oscDetune: 0,
+                    unison: 2, unisonDetune: 4,
+                    attack: 0.012, decay: 0.35, sustain: 82, release: 0.35,
+                    filterCutoff: 320, filterReso: 28, filterEnv: 55,
+                    reverbSize: 18, reverbMix: 12,
+                    delayTime: 60, delayFeedback: 15, delayMix: 8,
+                    driveAmount: 22, driveTone: 55,
+                    eqLow: 6, eqMid: 2, eqHigh: -4,
+                    compRatio: 6, compMakeup: 5
+                }
+            },
+            {
+                name: '💣 Acid 303 Squelch',
+                inspiration: 'TB-303 Acid Line / Resonant Bass',
+                category: 'Bass',
+                params: {
+                    oscType: 'square', oscPitch: -12, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.002, decay: 0.45, sustain: 35, release: 0.15,
+                    filterCutoff: 850, filterReso: 88, filterEnv: 95,
+                    reverbSize: 15, reverbMix: 10,
+                    delayTime: 200, delayFeedback: 45, delayMix: 30,
+                    driveAmount: 35, driveTone: 40,
+                    eqLow: 5, eqMid: -2, eqHigh: 3,
+                    lfo1Rate: 4.8, lfo1Depth: 55, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🔊 Future Bass Wobble',
+                inspiration: 'Future House / Flume Style',
+                category: 'Bass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 0,
+                    unison: 4, unisonDetune: 14,
+                    attack: 0.008, decay: 0.28, sustain: 72, release: 0.4,
+                    filterCutoff: 1800, filterReso: 52, filterEnv: 68,
+                    reverbSize: 32, reverbMix: 22,
+                    delayTime: 140, delayFeedback: 38, delayMix: 28,
+                    chorusDepth: 42, chorusRate: 0.9,
+                    driveAmount: 40, driveTone: 58,
+                    eqLow: 7, eqMid: 3, eqHigh: 2,
+                    lfo1Rate: 0.11, lfo1Depth: 62, lfo1Target: 'cutoff',
+                    lfo2Rate: 0.07, lfo2Depth: 18, lfo2Target: 'pitch'
+                }
+            },
+            {
+                name: '🎹 Vintage Analog Kick',
+                inspiration: 'TR-808 Kick / Synth Percussion',
+                category: 'Bass',
+                params: {
+                    oscType: 'sine', oscPitch: -36, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.001, decay: 0.18, sustain: 0, release: 0.12,
+                    filterCutoff: 450, filterReso: 18, filterEnv: 80,
+                    reverbSize: 8, reverbMix: 5,
+                    delayTime: 0, delayFeedback: 0, delayMix: 0,
+                    driveAmount: 15, driveTone: 50,
+                    eqLow: 10, eqMid: -4, eqHigh: -8
+                }
+            },
+            
+            // ===== CINEMATIC PADS (Omnisphere/Prophet style) =====
+            {
+                name: '🌌 Ambient Dreamscape',
+                inspiration: 'Omnisphere Atmosphere / Deep Space Pad',
+                category: 'Pad',
+                params: {
+                    oscType: 'sine', oscPitch: 0, oscDetune: 0,
+                    unison: 8, unisonDetune: 24,
+                    attack: 2.8, decay: 1.2, sustain: 95, release: 4.5,
+                    filterCutoff: 1400, filterReso: 6, filterEnv: 15,
+                    reverbSize: 92, reverbMix: 72,
+                    delayTime: 890, delayFeedback: 58, delayMix: 42,
+                    stereoWidth: 175,
+                    eqLow: 2, eqMid: 0, eqHigh: 4,
+                    lfo1Rate: 0.04, lfo1Depth: 12, lfo1Target: 'cutoff',
+                    lfo2Rate: 0.08, lfo2Depth: 8, lfo2Target: 'pan'
+                }
+            },
+            {
+                name: '🎻 Cinematic Strings',
+                inspiration: 'Spitfire Symphony / Prophet-5 Strings',
+                category: 'Pad',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 12, unisonDetune: 8,
+                    attack: 1.6, decay: 0.6, sustain: 88, release: 2.8,
+                    filterCutoff: 2600, filterReso: 12, filterEnv: 25,
+                    reverbSize: 78, reverbMix: 58,
+                    delayTime: 420, delayFeedback: 35, delayMix: 28,
+                    chorusDepth: 58, chorusRate: 1.4,
+                    stereoWidth: 155,
+                    eqLow: 3, eqMid: 4, eqHigh: 5,
+                    lfo1Rate: 0.06, lfo1Depth: 8, lfo1Target: 'volume'
+                }
+            },
+            {
+                name: '☁️ Warm Retro Pad',
+                inspiration: 'Jupiter-8 String Ensemble / Vintage Pad',
+                category: 'Pad',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 6, unisonDetune: 10,
+                    attack: 0.95, decay: 0.4, sustain: 84, release: 1.8,
+                    filterCutoff: 2200, filterReso: 18, filterEnv: 30,
+                    reverbSize: 62, reverbMix: 45,
+                    delayTime: 350, delayFeedback: 38, delayMix: 25,
+                    chorusDepth: 68, chorusRate: 2.2,
+                    eqLow: -2, eqMid: 3, eqHigh: 6,
+                    lfo1Rate: 0.09, lfo1Depth: 10, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🎹 Electric Piano',
+                inspiration: 'Rhodes Mark I / DX7 E. Piano',
+                category: 'Pad',
+                params: {
+                    oscType: 'triangle', oscPitch: 0, oscDetune: 0,
+                    unison: 3, unisonDetune: 4,
+                    attack: 0.005, decay: 0.38, sustain: 45, release: 1.2,
+                    filterCutoff: 5200, filterReso: 15, filterEnv: 35,
+                    reverbSize: 48, reverbMix: 38,
+                    delayTime: 260, delayFeedback: 28, delayMix: 20,
+                    chorusDepth: 45, chorusRate: 2.8,
+                    driveAmount: 12, driveTone: 70,
+                    eqLow: 2, eqMid: 5, eqHigh: 4,
+                    lfo1Rate: 4.6, lfo1Depth: 5, lfo1Target: 'volume',
+                    lfo2Rate: 0.18, lfo2Depth: 6, lfo2Target: 'cutoff'
+                }
+            },
+            
+            // ===== PLUCKS & PERCUSSIVE (Virus/Pigments style) =====
+            {
+                name: '🎵 Tropical Pluck',
+                inspiration: 'Serum Pluck / Tropical House Lead',
+                category: 'Pluck',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 4, unisonDetune: 8,
+                    attack: 0.002, decay: 0.12, sustain: 18, release: 0.18,
+                    filterCutoff: 4800, filterReso: 42, filterEnv: 72,
+                    reverbSize: 42, reverbMix: 32,
+                    delayTime: 180, delayFeedback: 35, delayMix: 28,
+                    eqLow: 4, eqMid: 2, eqHigh: 6,
+                    lfo1Rate: 0.12, lfo1Depth: 8, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🔔 Crystal Glock',
+                inspiration: 'FM8 Metallic / Asian Bell',
+                category: 'Pluck',
+                params: {
+                    oscType: 'sine', oscPitch: 12, oscDetune: 0,
+                    unison: 3, unisonDetune: 3,
+                    attack: 0.001, decay: 1.4, sustain: 8, release: 2.2,
+                    filterCutoff: 8500, filterReso: 55, filterEnv: 15,
+                    reverbSize: 75, reverbMix: 55,
+                    delayTime: 420, delayFeedback: 28, delayMix: 18,
+                    eqLow: -6, eqMid: 2, eqHigh: 8,
+                    lfo1Rate: 3.2, lfo1Depth: 4, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🥁 Industrial Impact',
+                inspiration: 'Kong / Metal Hit / Cinematic Perc',
+                category: 'Pluck',
+                params: {
+                    oscType: 'noise', oscPitch: 0, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.001, decay: 0.08, sustain: 0, release: 0.05,
+                    filterCutoff: 3800, filterReso: 48, filterEnv: 85,
+                    reverbSize: 55, reverbMix: 35,
+                    delayTime: 120, delayFeedback: 15, delayMix: 8,
+                    driveAmount: 55, driveTone: 35,
+                    eqLow: 8, eqMid: 0, eqHigh: -4
+                }
+            },
+            
+            // ===== SPECIALTY SOUNDS (Unique textures) =====
+            {
+                name: '🎺 Brass Section',
+                inspiration: 'M1 Brass / Real Brass Emulation',
+                category: 'Brass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 6, unisonDetune: 10,
+                    attack: 0.18, decay: 0.28, sustain: 82, release: 0.45,
+                    filterCutoff: 3200, filterReso: 26, filterEnv: 55,
+                    reverbSize: 48, reverbMix: 35,
+                    delayTime: 100, delayFeedback: 20, delayMix: 12,
+                    driveAmount: 28, driveTone: 62,
+                    eqLow: 5, eqMid: 4, eqHigh: 3,
+                    lfo1Rate: 0.15, lfo1Depth: 12, lfo1Target: 'volume',
+                    compRatio: 5, compMakeup: 4
+                }
+            },
+            {
+                name: '🎷 Smooth Sax',
+                inspiration: 'Saxophone Emulation / Wind Instrument',
+                category: 'Brass',
+                params: {
+                    oscType: 'triangle', oscPitch: 0, oscDetune: 0,
+                    unison: 2, unisonDetune: 5,
+                    attack: 0.08, decay: 0.22, sustain: 72, release: 0.35,
+                    filterCutoff: 4000, filterReso: 22, filterEnv: 42,
+                    reverbSize: 52, reverbMix: 40,
+                    delayTime: 180, delayFeedback: 25, delayMix: 18,
+                    chorusDepth: 55, chorusRate: 1.8,
+                    driveAmount: 18, driveTone: 68,
+                    eqLow: 2, eqMid: 5, eqHigh: 4,
+                    lfo1Rate: 4.8, lfo1Depth: 8, lfo1Target: 'volume',
+                    lfo2Rate: 2.2, lfo2Depth: 5, lfo2Target: 'pitch'
+                }
+            },
+            {
+                name: '🎤 Vocal Synth',
+                inspiration: 'Vocoder-style / Formant Pad',
+                category: 'Special',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 5, unisonDetune: 15,
+                    attack: 0.15, decay: 0.35, sustain: 68, release: 0.5,
+                    filterCutoff: 2800, filterReso: 45, filterEnv: 55,
+                    formantVowel: 2, // 'I' vowel
+                    reverbSize: 58, reverbMix: 42,
+                    delayTime: 220, delayFeedback: 32, delayMix: 22,
+                    chorusDepth: 62, chorusRate: 3.2,
+                    eqLow: -4, eqMid: 6, eqHigh: 5,
+                    lfo1Rate: 4.2, lfo1Depth: 10, lfo1Target: 'formant',
+                    lfo2Rate: 0.09, lfo2Depth: 15, lfo2Target: 'cutoff'
+                }
+            },
+            {
+                name: '🌀 Psychedelic Organ',
+                inspiration: 'Hammond B3 / Leslie Tones',
+                category: 'Special',
+                params: {
+                    oscType: 'square', oscPitch: 0, oscDetune: 0,
+                    unison: 3, unisonDetune: 3,
+                    attack: 0.005, decay: 0.08, sustain: 92, release: 0.15,
+                    filterCutoff: 6200, filterReso: 8, filterEnv: 12,
+                    reverbSize: 35, reverbMix: 25,
+                    delayTime: 90, delayFeedback: 18, delayMix: 12,
+                    chorusDepth: 72, chorusRate: 4.8, // Fast Leslie!
+                    eqLow: 4, eqMid: 3, eqHigh: 2,
+                    lfo1Rate: 6.0, lfo1Depth: 18, lfo1Target: 'modulation'
+                }
+            }
         ];
         
         let lastRandomProfile = null;
+        let randomizeCount = 0;
         
         document.getElementById('randomizeBtn')?.addEventListener('click', () => {
             saveToHistory();
+            randomizeCount++;
             
-            // Pick a complementary profile (different from last)
-            let availableProfiles = soundProfiles.filter(p => p !== lastRandomProfile);
+            // Pick a profile different from last (cycle through all)
+            let availableProfiles = PRO_SOUND_LIBRARY.filter(p => p !== lastRandomProfile);
             const profile = availableProfiles[Math.floor(Math.random() * availableProfiles.length)];
             lastRandomProfile = profile;
             
-            // Small variation for uniqueness but ALWAYS musically in-tune
-            const tinyVariation = () => (Math.random() - 0.5) * 0.08; // ±4% only!
+            // Micro-variations for uniqueness (±3% max) - keeps it PROFESSIONAL
+            const microVar = () => (Math.random() - 0.5) * 0.06; // Only ±3%!
             
-            // Snap pitch to valid semitone values (always in tune!)
-            const validPitches = [-24, -12, -7, -5, 0, 2, 3, 4, 5, 7, 10, 12];
-            const basePitch = profile.oscType === 'sine' ? 0 : (profile.oscType === 'square' ? -12 : 0);
+            const p = profile.params; // Shorthand
             
+            // Build target values with PERFECT tuning guaranteed
             const targetValues = {
-                // PITCH: Always exact semitones - NEVER out of tune!
-                osc1Pitch: basePitch,
-                // DETUNE: ZERO for perfect tuning!
-                osc1Detune: 0,
-                unisonVoices: profile.unison || 3,
-                // UNISON DETUNE: Minimal spread that sounds GOOD (max 10 cents)
-                unisonDetune: Math.min(10, Math.max(2, Math.round((profile.detune || 5) * 0.5))),
-                attack: Math.max(0.001, profile.attack * (1 + tinyVariation())),
-                decay: Math.max(0.01, profile.decay * (1 + tinyVariation())),
-                sustain: Math.max(0, Math.min(100, profile.sustain * (1 + tinyVariation()))),
-                release: Math.max(0.01, profile.release * (1 + tinyVariation())),
-                filter1Cutoff: Math.round(profile.filterCutoff * (1 + tinyVariation())),
-                filter1Resonance: Math.min(60, Math.round(profile.filterReso * (1 + tinyVariation()))),
-                reverbSize: profile.reverb || 30,
-                reverbMix: Math.min(60, (profile.reverb || 30) * 0.7),
-                delayTime: Math.round((profile.delay || 20) * 10),
-                delayFeedback: Math.min(45, (profile.delay || 20) * 0.35),
-                driveAmount: profile.drive || 0,
-                masterGain: Math.round(Math.random() * 4 - 2)
+                // Oscillator - always in tune!
+                osc1Pitch: p.oscPitch || 0,
+                osc1Detune: 0, // ZERO detune = perfect pitch
+                
+                // Voice architecture - professional unison
+                unisonVoices: p.unison || 4,
+                unisonDetune: Math.min(12, Math.max(2, Math.round((p.unisonDetune || 8) * 0.6))), // Max 12 cents = subtle warmth only
+                
+                // Envelope - production-ready shapes
+                attack: Math.max(0.001, p.attack * (1 + microVar())),
+                decay: Math.max(0.01, p.decay * (1 + microVar())),
+                sustain: Math.max(0, Math.min(100, p.sustain * (1 + microVar()))),
+                release: Math.max(0.01, p.release * (1 + microVar())),
+                
+                // Filter - musical, not harsh
+                filter1Cutoff: Math.round(p.filterCutoff * (1 + microVar())),
+                filter1Resonance: Math.min(55, Math.round(p.filterReso * (1 + microVar()))), // Cap at 55% to avoid harshness
+                filter2Env: p.filterEnv || 30,
+                
+                // Effects chain - studio-quality levels
+                reverbSize: p.reverbSize || 40,
+                reverbMix: Math.min(55, Math.round((p.reverbMix || 30) * 0.85)), // Keep reverb tasteful
+                delayTime: Math.round(p.delayTime || 200),
+                delayFeedback: Math.min(42, Math.round((p.delayFeedback || 25) * 0.8)),
+                delayMix: p.delayMix || 20,
+                
+                // Modulation
+                chorusDepth: p.chorusDepth || 30,
+                chorusRate: p.chorusRate || 2.0,
+                
+                // Saturation - subtle warmth, never distortion
+                driveAmount: Math.min(45, p.driveAmount || 0), // Cap drive for clean output
+                driveTone: p.driveTone || 50,
+                
+                // EQ - balanced frequency response
+                eqLow: p.eqLow || 0,
+                eqMid: p.eqMid || 0,
+                eqHigh: p.eqHigh || 0,
+                
+                // Dynamics
+                compRatio: p.compRatio || 4,
+                compMakeup: p.compMakeup || 2,
+                
+                // Stereo
+                stereoWidth: p.stereoWidth || 100,
+                
+                // Master - conservative level
+                masterGain: Math.round(-2 + Math.random() * 2) // -2 to 0 dB range
             };
             
-            // Set oscillator type
+            // Set oscillator type from profile
             const oscSelect = document.getElementById('osc1Type');
-            if(oscSelect) oscSelect.value = profile.oscType;
+            if(oscSelect && p.oscType) oscSelect.value = p.oscType;
             
-            // Apply all target values
+            // Apply all main values
             Object.entries(targetValues).forEach(([param, value]) => {
                 const knob = document.querySelector(`[data-param="${param}"]`);
                 if (knob) setKnobValue(knob, value);
             });
             
-            // Extra randomness ONLY for safe parameters that don't affect tuning
-            const safeParams = ['lfo1Rate', 'lfo1Depth', 'lfo2Rate', 'lfo2Depth', 'chorusRate', 'chorusDepth', 'eqLow', 'eqMid', 'eqHigh', 'stereoWidth', 'compThreshold', 'compMakeup'];
-            knobs.forEach(knob => {
-                if (!targetValues[knob.dataset.param] && safeParams.includes(knob.dataset.param)) {
-                    const min = parseFloat(knob.dataset.min);
-                    const max = parseFloat(knob.dataset.max);
-                    const range = (max - min) * 0.25;
-                    const mid = (min + max) / 2;
-                    const randomVal = mid + (Math.random() - 0.5) * range;
-                    setKnobValue(knob, Math.max(min, Math.min(max, randomVal)));
-                }
-            });
+            // Apply LFO settings if defined in profile
+            if(p.lfo1Rate) {
+                const lfo1RateKnob = document.querySelector('[data-param="lfo1Rate"]');
+                const lfo1DepthKnob = document.querySelector('[data-param="lfo1Depth"]');
+                if(lfo1RateKnob) setKnobValue(lfo1RateKnob, p.lfo1Rate);
+                if(lfo1DepthKnob) setKnobValue(lfo1DepthKnob, p.lfo1Depth);
+            }
+            if(p.lfo2Rate) {
+                const lfo2RateKnob = document.querySelector('[data-param="lfo2Rate"]');
+                const lfo2DepthKnob = document.querySelector('[data-param="lfo2Depth"]');
+                if(lfo2RateKnob) setKnobValue(lfo2RateKnob, p.lfo2Rate);
+                if(lfo2DepthKnob) setKnobValue(lfo2DepthKnob, p.lfo2Depth);
+            }
             
-            currentPresetName = profile.name + ' (In Tune)';
+            currentPresetName = `${profile.name} #${randomizeCount}`;
             document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
             updateADSRVisual();
             updateWaveform();
-            showNotification(`🎵 ${profile.name} - Perfectly Tuned!`);
+            showNotification(`🎧 ${profile.name}`, true); // Small notification
         });
         
         // ===== SONG STARTER SYSTEM - INTELLIGENT MELODY GENERATOR =====
