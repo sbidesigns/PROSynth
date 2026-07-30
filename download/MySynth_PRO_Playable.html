@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎹 MySynth PRO - PLAY NOW!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-panel: #12121a;
+            --bg-section: #1a1a25;
+            --accent: #00D4FF;
+            --accent2: #FF006E;
+            --accent3: #8B5CF6;
+            --text: #E8E8F0;
+            --text-dim: #6B7280;
+            --border: #2A2A3A;
+            --glow: rgba(0, 212, 255, 0.4);
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1025 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== START SCREEN ===== */
+        #startScreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(10,10,15,0.98), rgba(26,16,37,0.98));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        
+        #startScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        .start-title {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--glow)); }
+            50% { filter: drop-shadow(0 0 40px var(--glow)) drop-shadow(0 0 60px rgba(139,92,246,0.3)); }
+        }
+        
+        .start-subtitle {
+            font-size: 18px;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+        
+        .start-btn {
+            padding: 20px 60px;
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px var(--glow);
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 60px var(--glow);
+        }
+        
+        .keyboard-hint {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .keyboard-hint h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+        
+        .key-hints-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 8px 0;
+        }
+        
+        .key-hint {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(180deg, #2a2a3a, #1a1a25);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.15s;
+        }
+        
+        .key-hint.black-key {
+            width: 32px;
+            height: 28px;
+            background: linear-gradient(180deg, #333, #111);
+            margin-top: -18px;
+            margin-left: -19px;
+            margin-right: -19px;
+            z-index: 1;
+        }
+        
+        .key-hint.active {
+            background: linear-gradient(180deg, var(--accent), #0099bb);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px var(--glow);
+            transform: translateY(2px);
+        }
+
+        /* Main Plugin Window */
+        .plugin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .plugin-window {
+            background: linear-gradient(180deg, #15151f 0%, #0d0d14 100%);
+            border-radius: 16px;
+            box-shadow: 
+                0 30px 100px rgba(0,0,0,0.8),
+                0 0 60px var(--glow),
+                inset 0 1px 0 rgba(255,255,255,0.05),
+                0 0 0 1px var(--border);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.1), transparent);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px var(--glow); }
+            50% { box-shadow: 0 0 35px var(--glow), 0 0 50px rgba(139,92,246,0.2); }
+        }
+
+        .plugin-title {
+            font-size: 22px; font-weight: 800; letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent3));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .plugin-subtitle {
+            font-size: 9px; color: var(--text-dim); letter-spacing: 6px; margin-top: -2px;
+        }
+
+        .header-controls { display: flex; gap: 15px; align-items: center; }
+
+        .preset-display {
+            background: var(--bg-panel); padding: 6px 16px; border-radius: 20px;
+            font-size: 11px; color: var(--accent); border: 1px solid var(--border);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .preset-display:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--glow); }
+
+        .btn-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: var(--bg-section); border: 1px solid var(--border);
+            color: var(--text-dim); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-icon.active { background: var(--accent); color: var(--bg-dark); border-color: var(--accent); }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex; background: var(--bg-panel); padding: 5px; gap: 3px;
+            margin: 10px 15px; border-radius: 10px; border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1; padding: 10px; background: transparent; border: none;
+            color: var(--text-dim); font-size: 10px; font-weight: 600;
+            letter-spacing: 1px; cursor: pointer; border-radius: 7px;
+            transition: all 0.2s; text-transform: uppercase;
+        }
+        .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(139,92,246,0.2));
+            color: var(--accent); box-shadow: 0 0 20px var(--glow);
+        }
+
+        /* Main Content */
+        .main-content { padding: 0 15px 10px; min-height: 480px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Section Grid */
+        .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+
+        .section {
+            background: var(--bg-section); border-radius: 12px; padding: 12px;
+            border: 1px solid var(--border); position: relative; overflow: hidden;
+        }
+        .section::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2)); opacity: 0.6;
+        }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+        .section-badge { font-size: 8px; padding: 2px 8px; background: rgba(0,212,255,0.15); color: var(--accent); border-radius: 10px; border: 1px solid rgba(0,212,255,0.3); }
+
+        /* Knob System */
+        .knob-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .knob-item { display: flex; flex-direction: column; align-items: center; width: 65px; }
+
+        .knob {
+            width: 52px; height: 52px; position: relative; cursor: pointer; user-select: none;
+        }
+        .knob-ring {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(from 135deg, var(--border) 0deg, var(--border) 270deg, transparent 270deg);
+        }
+        .knob-fill {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(from 135deg, var(--accent) 135deg, var(--accent) calc(var(--value, 0.5) * 270deg + 135deg), transparent calc(var(--value, 0.5) * 270deg + 135deg));
+            transition: background 0.05s;
+        }
+        .knob-inner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 38px; height: 38px; background: linear-gradient(145deg, #2a2a3a, #1a1a25);
+            border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .knob-indicator {
+            position: absolute; top: 50%; left: 50%; width: 18px; height: 3px;
+            background: var(--accent); border-radius: 2px;
+            transform-origin: left center; pointer-events: none;
+            box-shadow: 0 0 8px var(--glow);
+        }
+        .knob-label { font-size: 9px; font-weight: 600; color: var(--text-dim); margin-top: 4px; text-align: center; text-transform: uppercase; }
+        .knob-value { font-size: 8px; color: var(--accent); text-align: center; min-height: 12px; }
+
+        .knob-lg .knob { width: 70px; height: 70px; }
+        .knob-lg .knob-inner { width: 52px; height: 52px; }
+        .knob-lg .knob-indicator { width: 24px; }
+
+        /* Select/Dropdown */
+        .select-styled {
+            width: 100%; padding: 8px 12px; background: var(--bg-panel); color: var(--text);
+            border: 1px solid var(--border); border-radius: 8px; font-size: 11px;
+            cursor: pointer; outline: none; transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236B7280'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center;
+        }
+        .select-styled:hover, .select-styled:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--glow); }
+
+        /* Effects Rack */
+        .effects-rack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .effect-unit {
+            background: var(--bg-panel); border-radius: 10px; padding: 10px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .effect-unit:hover { border-color: var(--accent3); }
+        .effect-unit.active { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+        .effect-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .effect-name { font-size: 10px; font-weight: 700; color: var(--accent3); text-transform: uppercase; }
+        .effect-toggle {
+            width: 28px; height: 16px; background: var(--border); border-radius: 8px;
+            position: relative; cursor: pointer; transition: all 0.2s;
+        }
+        .effect-toggle::after {
+            content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+            background: var(--text-dim); border-radius: 50%; transition: all 0.2s;
+        }
+        .effect-toggle.on { background: var(--accent); }
+        .effect-toggle.on::after { left: 14px; background: white; }
+
+        /* Arp Section */
+        .arp-section {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(0,212,255,0.05));
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+
+        .step-sequencer { display: flex; gap: 3px; margin-top: 10px; flex-wrap: wrap; }
+        .step {
+            width: 26px; height: 26px; background: var(--bg-panel); border: 1px solid var(--border);
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 9px; color: var(--text-dim); transition: all 0.15s;
+        }
+        .step:hover { border-color: var(--accent3); }
+        .step.on {
+            background: linear-gradient(135deg, var(--accent3), var(--accent));
+            border-color: var(--accent); color: white; box-shadow: 0 0 10px var(--glow);
+        }
+        .step.current { animation: stepPulse 0.2s ease; }
+        @keyframes stepPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* KEYBOARD - ENHANCED */
+        .keyboard-container {
+            background: linear-gradient(180deg, #1a1a25, #12121a);
+            border-radius: 12px; padding: 12px; margin-top: 10px;
+            border-top: 2px solid var(--border);
+            position: relative;
+        }
+        
+        .keyboard-label {
+            text-align: center; font-size: 10px; color: var(--accent);
+            margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase;
+        }
+        
+        .keyboard-instructions {
+            text-align: center; font-size: 9px; color: var(--text-dim);
+            margin-bottom: 8px; padding: 5px; background: rgba(0,212,255,0.1);
+            border-radius: 5px;
+        }
+        
+        .keyboard-instructions kbd {
+            background: var(--bg-section); padding: 2px 6px; border-radius: 3px;
+            border: 1px solid var(--border); font-family: inherit; color: var(--accent);
+        }
+
+        .keyboard {
+            display: flex; justify-content: center; height: 60px; position: relative;
+            padding: 0 20px;
+        }
+
+        .key {
+            width: 28px; height: 55px; background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+            border: 1px solid #999; border-radius: 0 0 5px 5px; margin-right: 1px;
+            cursor: pointer; transition: all 0.08s; position: relative; z-index: 1;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 3px;
+        }
+        .key.black {
+            width: 18px; height: 36px; background: linear-gradient(180deg, #333 0%, #111 100%);
+            border-color: #000; margin-left: -10px; margin-right: -11px; z-index: 2;
+        }
+        .key:hover { background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%); }
+        .key.black:hover { background: linear-gradient(180deg, #444 0%, #222 100%); }
+        .key.active {
+            background: linear-gradient(180deg, var(--accent) 0%, #0099bb 100%) !important;
+            transform: translateY(3px); box-shadow: 0 0 20px var(--glow), inset 0 -5px 10px rgba(0,0,0,0.3);
+        }
+        .key.black.active { background: linear-gradient(180deg, var(--accent3) 0%, #6b21a8 100%) !important; }
+        
+        .key-note-label {
+            font-size: 8px; color: #666; font-weight: bold;
+        }
+        .key.active .key-note-label { color: white; }
+        
+        .key-kbd-label {
+            font-size: 7px; color: #999; position: absolute; bottom: 2px;
+        }
+        .key.active .key-kbd-label { color: rgba(255,255,255,0.7); }
+
+        /* Visualizer */
+        .visualizer {
+            height: 70px; background: var(--bg-panel); border-radius: 8px;
+            margin-top: 10px; position: relative; overflow: hidden;
+        }
+        .visualizer canvas { width: 100%; height: 100%; }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex; justify-content: space-between; padding: 8px 15px;
+            background: var(--bg-panel); border-top: 1px solid var(--border);
+            font-size: 9px; color: var(--text-dim);
+        }
+        .status-item { display: flex; align-items: center; gap: 5px; }
+        .status-value { color: var(--accent); font-weight: 600; }
+
+        /* Waveform Display */
+        .waveform-display { height: 80px; background: var(--bg-panel); border-radius: 8px; margin-bottom: 10px; position: relative; overflow: hidden; }
+        .waveform-display canvas { width: 100%; height: 100%; }
+
+        /* ADSR Visual */
+        .adsr-container { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed; top: 20px; right: 20px; width: 260px;
+            background: rgba(18, 18, 26, 0.98); padding: 15px; border-radius: 12px;
+            border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 100; backdrop-filter: blur(10px);
+        }
+        .info-panel h3 { color: var(--accent); margin-bottom: 10px; font-size: 14px; }
+        .feature-list { list-style: none; font-size: 10px; line-height: 1.8; }
+        .feature-list li::before { content: '✦'; color: var(--accent); margin-right: 5px; }
+        .close-info {
+            position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+            background: var(--bg-section); border: none; border-radius: 6px;
+            color: var(--text-dim); cursor: pointer; font-size: 14px;
+        }
+
+        /* Now Playing Indicator */
+        .now-playing {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,212,255,0.2); border: 1px solid var(--accent);
+            padding: 10px 25px; border-radius: 25px; font-size: 14px; font-weight: bold;
+            color: var(--accent); opacity: 0; transition: opacity 0.2s;
+            z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .now-playing.show { opacity: 1; }
+
+        @media (max-width: 900px) {
+            .effects-rack { grid-template-columns: repeat(2, 1fr); }
+            .info-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div id="startScreen">
+    <div class="start-title">🎹 MY SYNTH PRO</div>
+    <div class="start-subtitle">Ultimate Virtual Instrument - Play It Now!</div>
+    <button class="start-btn" onclick="startApp()">▶ LAUNCH SYNTHESIZER</button>
+    
+    <div class="keyboard-hint">
+        <h3>🎹 Keyboard Layout (Click keys or use your keyboard!)</h3>
+        <div class="key-hints-row">
+            <div class="key-hint" data-key="a">A</div>
+            <div class="key-hint black-key" data-key="w">W</div>
+            <div class="key-hint" data-key="s">S</div>
+            <div class="key-hint black-key" data-key="e">E</div>
+            <div class="key-hint" data-key="d">D</div>
+            <div class="key-hint" data-key="f">F</div>
+            <div class="key-hint black-key" data-key="t">T</div>
+            <div class="key-hint" data-key="g">G</div>
+            <div class="key-hint black-key" data-key="y">Y</div>
+            <div class="key-hint" data-key="h">H</div>
+            <div class="key-hint black-key" data-key="u">U</div>
+            <div class="key-hint" data-key="j">J</div>
+            <div class="key-hint black-key" data-key="k">K</div>
+            <div class="key-hint" data-key="l">L</div>
+            <div class="key-hint black-key" data-key="o">O</div>
+            <div class="key-hint" data-key="p">P</div>
+            <div class="key-hint" data-key=";">;</div>
+            <div class="key-hint black-key" data-key="'">'</div>
+        </div>
+        <p style="margin-top: 15px; color: var(--text-dim); font-size: 12px;">
+            🖱️ Click piano keys OR use computer keyboard<br>
+            🔊 Make sure sound is enabled!
+        </p>
+    </div>
+</div>
+
+<!-- NOW PLAYING INDICATOR -->
+<div class="now-playing" id="nowPlaying">♪ Playing...</div>
+
+<!-- MAIN PLUGIN -->
+<div class="plugin-container">
+    <div class="plugin-window">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <div>
+                    <div class="plugin-title">MY SYNTH PRO</div>
+                    <div class="plugin-subtitle">ULTIMATE SYNTHESIS ENGINE v2.0</div>
+                </div>
+            </div>
+            <div class="header-controls">
+                <span class="preset-display" id="presetDisplay">Init Patch ▾</span>
+                <button class="btn-icon" title="Randomize" onclick="randomizeAll()">🎲</button>
+                <button class="btn-icon active" title="Sound On" id="soundToggle">🔊</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="oscillators">🔊 Oscillators</button>
+            <button class="tab-btn" data-tab="filters">🎛️ Filters</button>
+            <button class="tab-btn" data-tab="modulation">🌀 Modulation</button>
+            <button class="tab-btn" data-tab="effects">✨ Effects</button>
+            <button class="tab-btn" data-tab="arpeggiator">🎼 Arp/Seq</button>
+        </div>
+
+        <!-- Content -->
+        <div class="main-content">
+            
+            <!-- OSCILLATORS TAB -->
+            <div class="tab-content active" id="tab-oscillators">
+                <div class="section-grid">
+                    <!-- Oscillator 1 -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">Oscillator 1</span>
+                            <span class="section-badge">MAIN</span>
+                        </div>
+                        <select class="select-styled" id="osc1Type" onchange="updateWaveform()">
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="square">Square/PWM</option>
+                            <option value="sine">Sine</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="fm">FM Operator</option>
+                            <option value="noise">Noise</option>
+                        </select>
+                        <div class="waveform-display"><canvas id="waveformCanvas"></canvas></div>
+                        <div class="knob-grid" style="margin-top:10px;">
+                            <div class="knob-item">
+                                <div class="knob" data-param="osc1Pitch" data-min="-24" data-max="24" data-default="0" data-unit="st">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Pitch</span><span class="knob-value">0 st</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="osc1Detune" data-min="-50" data-max="50" data-default="0" data-unit="¢">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Detune</span><span class="knob-value">0 ¢</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Oscillator 2 -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">Oscillator 2</span>
+                            <span class="section-badge">LAYER</span>
+                        </div>
+                        <select class="select-styled" id="osc2Type">
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="square">Square</option>
+                            <option value="sine">Sine</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                        <div class="knob-grid" style="margin-top:10px;">
+                            <div class="knob-item">
+                                <div class="knob" data-param="osc2Pitch" data-min="-24" data-max="24" data-default="-7" data-unit="st">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Pitch</span><span class="knob-value">-7 st</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="osc2Level" data-min="0" data-max="100" data-default="70" data-unit="%">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Level</span><span class="knob-value">70%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unison -->
+                    <div class="section">
+                        <div class="section-header">
+                            <span class="section-title">Unison / Supersaw</span>
+                            <span class="section-badge">THICKNESS</span>
+                        </div>
+                        <div class="knob-grid">
+                            <div class="knob-item knob-lg">
+                                <div class="knob" data-param="unisonVoices" data-min="1" data-max="16" data-default="1" data-unit="">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Voices</span><span class="knob-value">1</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="unisonSpread" data-min="0" data-max="100" data-default="25" data-unit="">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Spread</span><span class="knob-value">25</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="unisonDetune" data-min="0" data-max="50" data-default="12" data-unit="¢">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Detune</span><span class="knob-value">12¢</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADSR Envelope -->
+                <div class="section" style="margin-top:12px;">
+                    <div class="section-header">
+                        <span class="section-title">Amplitude Envelope (ADSR)</span>
+                        <span class="section-badge">VOLUME SHAPE</span>
+                    </div>
+                    <div class="adsr-container">
+                        <div style="display:flex;gap:12px;">
+                            <div class="knob-item">
+                                <div class="knob" data-param="attack" data-min="0.001" data-max="5" data-default="0.01" data-unit="s" data-scale="log">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label" style="font-size:14px;font-weight:bold;color:var(--accent)">A</span>
+                                <span class="knob-value">0.01s</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="decay" data-min="0.001" data-max="5" data-default="0.2" data-unit="s" data-scale="log">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label" style="font-size:14px;font-weight:bold;color:var(--accent)">D</span>
+                                <span class="knob-value">0.20s</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="sustain" data-min="0" data-max="100" data-default="70" data-unit="%">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label" style="font-size:14px;font-weight:bold;color:var(--accent)">S</span>
+                                <span class="knob-value">70%</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="release" data-min="0.01" data-max="10" data-default="0.3" data-unit="s" data-scale="log">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label" style="font-size:14px;font-weight:bold;color:var(--accent)">R</span>
+                                <span class="knob-value">0.30s</span>
+                            </div>
+                        </div>
+                        <svg viewBox="0 0 280 80" style="flex:1;height:75px;min-width:150px;" id="adsrVisual">
+                            <defs><linearGradient id="envGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.6"/>
+                                <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:0.1"/>
+                            </linearGradient></defs>
+                            <line x1="0" y1="10" x2="280" y2="10" stroke="#2A2A3A" stroke-width="0.5"/>
+                            <line x1="0" y1="40" x2="280" y2="40" stroke="#2A2A3A" stroke-width="0.5"/>
+                            <line x1="0" y1="70" x2="280" y2="70" stroke="#2A2A3A" stroke-width="0.5"/>
+                            <path id="adsrPath" d="M0,70 L25,10 L55,38 L195,38 L230,70" fill="url(#envGrad)" stroke="#00D4FF" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTERS TAB -->
+            <div class="tab-content" id="tab-filters">
+                <div class="section-grid">
+                    <div class="section">
+                        <div class="section-header"><span class="section-title">Filter 1</span><span class="section-badge">PRIMARY</span></div>
+                        <select class="select-styled" id="filter1Type">
+                            <option value="lp24">Low Pass 24dB</option><option value="lp12">Low Pass 12dB</option>
+                            <option value="hp24">High Pass 24dB</option><option value="bp">Band Pass</option>
+                            <option value="notch">Notch</option><option value="moog">Moog Ladder</option>
+                        </select>
+                        <div class="knob-grid" style="margin-top:10px;">
+                            <div class="knob-item knob-lg">
+                                <div class="knob" data-param="filterCutoff" data-min="20" data-max="20000" data-default="8000" data-unit="Hz" data-scale="exp">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Cutoff</span><span class="knob-value">8 kHz</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="filterReso" data-min="0.1" data-max="20" data-default="1" data-unit="Q">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Resonance</span><span class="knob-value">1.0 Q</span>
+                            </div>
+                            <div class="knob-item">
+                                <div class="knob" data-param="filterEnv" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Env></span><span class="knob-value">50%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-header"><span class="section-title">Master Output</span><span class="section-badge">VOLUME</span></div>
+                        <div class="knob-grid" style="justify-content:center;padding:20px 0;">
+                            <div class="knob-item knob-lg">
+                                <div class="knob" data-param="masterGain" data-min="-60" data-max="6" data-default="-3" data-unit="dB">
+                                    <div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div>
+                                </div>
+                                <span class="knob-label">Master Gain</span><span class="knob-value">-3 dB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EFFECTS TAB -->
+            <div class="tab-content" id="tab-effects">
+                <div class="effects-rack">
+                    <div class="effect-unit active">
+                        <div class="effect-header"><span class="effect-name">Reverb</span><div class="effect-toggle on" data-effect="reverb"></div></div>
+                        <div class="knob-grid">
+                            <div class="knob-item"><div class="knob" data-param="revMix" data-min="0" data-max="100" data-default="30" data-unit%"><div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div></div><span class="knob-label">Mix</span><span class="knob-value">30%</span></div>
+                        </div>
+                    </div>
+                    <div class="effect-unit">
+                        <div class="effect-header"><span class="effect-name">Delay</span><div class="effect-toggle" data-effect="delay"></div></div>
+                        <div class="knob-grid">
+                            <div class="knob-item"><div class="knob" data-param="delayMix" data-min="0" data-max="100" data-default="25" data-unit%"><div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div></div><span class="knob-label">Mix</span><span class="knob-value">25%</span></div>
+                        </div>
+                    </div>
+                    <div class="effect-unit">
+                        <div class="effect-header"><span class="effect-name">Drive</span><div class="effect-toggle" data-effect="drive"></div></div>
+                        <div class="knob-grid">
+                            <div class="knob-item"><div class="knob" data-param="driveAmount" data-min="0" data-max="100" data-default="0" data-unit%"><div class="knob-ring"></div><div class="knob-fill"></div><div class="knob-inner"></div><div class="knob-indicator"></div></div><span class="knob-label">Amount</span><span class="knob-value">0%</span></div>
+                        </div>
+                    </div>
+                    <div class="effect-unit active">
+                        <div class="effect-header"><span class="effect-name">Limiter</span><div class="effect-toggle on" data-effect="limiter"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ARPEGGIATOR TAB -->
+            <div class="tab-content" id="tab-arpeggiator">
+                <div class="section-grid">
+                    <div class="section arp-section">
+                        <div class="section-header"><span class="section-title">Arpeggiator</span><span class="section-badge">MELODY</span></div>
+                        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                            <button class="btn-icon active" id="arpOnBtn" style="background:var(--accent);color:#000;">▶</button>
+                            <select class="select-styled" id="arpMode" style="flex:1;"><option>Up</option><option>Down</option><option>UpDown</option><option>Random</option></select>
+                        </div>
+                        <div class="step-sequencer" id="stepSequencer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KEYBOARD -->
+        <div class="keyboard-container">
+            <div class="keyboard-label">⌨️ Virtual Keyboard</div>
+            <div class="keyboard-instructions">
+                Press keys: <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> 
+                (Black keys: <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd>)
+            </div>
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+
+        <!-- Visualizer -->
+        <div class="visualizer"><canvas id="visualizerCanvas"></canvas></div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">Voices: <span class="status-value" id="voiceCount">0 / 16</span></div>
+            <div class="status-item">CPU: <span class="status-value" id="cpuUsage">0%</span></div>
+            <div class="status-item">Sample Rate: <span class="status-value">44.1kHz</span></div>
+            <div class="status-item">🎹 MySynth PRO v2.0</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== GLOBAL STATE =====
+let audioCtx = null;
+let soundEnabled = true;
+let oscillators = new Map();
+let voiceCount = 0;
+
+// Key mapping: computer key -> piano key index
+const keyMap = {
+    'a': 0, 'w': 1, 's': 2, 'e': 3, 'd': 4,
+    'f': 5, 't': 6, 'g': 7, 'y': 8, 'h': 9,
+    'u': 10, 'j': 11, 'k': 12, 'o': 13, 'l': 14,
+    'p': 15, ';': 16, "'": 17
+};
+
+// Note names for each key
+const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const keyboardLabels = ['a', 'w', 's', 'e', 'd', 'f', 't', 'g', 'y', 'h', 'u', 'j', 'k', 'o', 'l', 'p', ';', "'"];
+
+// ===== START APP =====
+function startApp() {
+    document.getElementById('startScreen').classList.add('hidden');
+    // Initialize audio context on user gesture
+    initAudio();
+}
+
+// ===== AUDIO INITIALIZATION =====
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('🎵 Audio Context Initialized!');
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// ===== KNOB SYSTEM =====
+document.querySelectorAll('.knob').forEach(knob => {
+    let isDragging = false, startY, startValue;
+    const param = knob.dataset.param;
+    const min = parseFloat(knob.dataset.min);
+    const max = parseFloat(knob.dataset.max);
+    const defaultVal = parseFloat(knob.dataset.default);
+    const unit = knob.dataset.unit || '';
+    const scale = knob.dataset.scale || 'linear';
+    let currentValue = defaultVal;
+    
+    function updateKnob(value) {
+        let normalized = scale === 'log' ? 
+            (Math.log(value) - Math.log(min)) / (Math.log(max) - Math.log(min)) :
+            scale === 'exp' ? Math.log(value/min) / Math.log(max/min) :
+            (value - min) / (max - min);
+        normalized = Math.max(0, Math.min(1, normalized));
+        knob.style.setProperty('--value', normalized);
+        const angle = -135 + normalized * 270;
+        knob.querySelector('.knob-indicator').style.transform = `translate(0,-50%) rotate(${angle}deg)`;
+        
+        const container = knob.closest('.knob-item');
+        const valEl = container.querySelector('.knob-value');
+        if (valEl) {
+            let display = unit === '%' ? `${Math.round(value)} ${unit}` :
+                         unit === 'Hz' ? (value >= 1000 ? `${(value/1000).toFixed(1)} kHz` : `${Math.round(value)} Hz`) :
+                         unit === 'dB' ? `${value.toFixed(1)} ${unit}` :
+                         unit === 'st' ? `${Math.round(value)} st` :
+                         unit === '¢' ? `${Math.round(value)} ¢` :
+                         unit === 's' ? `${value.toFixed(2)} s` :
+                         Number.isInteger(value) ? value : value.toFixed(2);
+            valEl.textContent = display.trim();
+        }
+        updateADSRVisual();
+        updateWaveform();
+    }
+    
+    knob.addEventListener('mousedown', e => {
+        isDragging = true; startY = e.clientY; startValue = currentValue;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const delta = (startY - e.clientY) * 0.5;
+        currentValue = Math.max(min, Math.min(max, startValue + (delta/150)*(max-min)));
+        updateKnob(currentValue);
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) { isDragging = false; document.body.style.cursor = ''; }
+    });
+    
+    knob.addEventListener('dblclick', () => { currentValue = defaultVal; updateKnob(currentValue); });
+    
+    // Initialize
+    updateKnob(currentValue);
+});
+
+// ===== TAB NAVIGATION =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+});
+
+// ===== EFFECT TOGGLES =====
+document.querySelectorAll('.effect-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+        toggle.classList.toggle('on');
+        toggle.closest('.effect-unit').classList.toggle('active');
+    });
+});
+
+// ===== STEP SEQUENCER =====
+const stepSequencer = document.getElementById('stepSequencer');
+for (let i = 0; i < 16; i++) {
+    const step = document.createElement('div');
+    step.className = 'step';
+    step.dataset.step = i;
+    step.textContent = (i % 4 === 0) ? i/4 + 1 : '';
+    step.addEventListener('click', () => step.classList.toggle('on'));
+    stepSequencer.appendChild(step);
+}
+let currentStep = 0;
+setInterval(() => {
+    document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('current', i === currentStep));
+    currentStep = (currentStep + 1) % 16;
+}, 125);
+
+// ===== BUILD KEYBOARD =====
+const keyboard = document.getElementById('keyboard');
+
+for (let i = 0; i < 18; i++) {
+    const noteIdx = i % 12;
+    const isBlack = noteNames[noteIdx].includes('#');
+    const key = document.createElement('div');
+    key.className = `key${isBlack ? ' black' : ''}`;
+    key.dataset.index = i;
+    key.dataset.note = `${noteNames[noteIdx]}${3 + Math.floor(i/12)}`;
+    key.dataset.freq = (440 * Math.pow(2, (i - 9) / 12)).toFixed(1);
+    
+    // Add labels
+    const noteLabel = document.createElement('span');
+    noteLabel.className = 'key-note-label';
+    noteLabel.textContent = noteNames[noteIdx];
+    key.appendChild(noteLabel);
+    
+    const kbdLabel = document.createElement('span');
+    kbdLabel.className = 'key-kbd-label';
+    kbdLabel.textContent = keyboardLabels[i] || '';
+    key.appendChild(kbdLabel);
+    
+    // Mouse events
+    key.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        playNote(key);
+    });
+    key.addEventListener('mouseup', () => stopNote(key));
+    key.addEventListener('mouseleave', () => stopNote(key));
+    // Touch support
+    key.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        playNote(key);
+    });
+    key.addEventListener('touchend', () => stopNote(key));
+    
+    keyboard.appendChild(key);
+}
+
+// ===== PLAY NOTE =====
+function playNote(keyElement) {
+    if (keyElement.classList.contains('active')) return;
+    
+    // Ensure audio is initialized
+    initAudio();
+    if (!soundEnabled || !audioCtx) return;
+    
+    keyElement.classList.add('active');
+    
+    const freq = parseFloat(keyElement.dataset.freq);
+    const noteName = keyElement.dataset.note;
+    const oscType = document.getElementById('osc1Type')?.value || 'sawtooth';
+    const masterGainDB = getKnobValue('masterGain');
+    const attack = getKnobValue('attack');
+    const sustain = getKnobValue('sustain') / 100;
+    const unisonVoices = Math.round(getKnobValue('unisonVoices'));
+    const unisonDetune = getKnobValue('unisonDetune');
+    
+    // Create gain node for this note
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(
+        Math.pow(10, masterGainDB/20) * 0.2, 
+        audioCtx.currentTime + attack
+    );
+    gainNode.gain.linearRampToValueAtTime(
+        Math.pow(10, masterGainDB/20) * 0.2 * sustain,
+        audioCtx.currentTime + attack + 0.05
+    );
+    gainNode.connect(audioCtx.destination);
+    
+    // Create oscillator(s)
+    const oscs = [];
+    const typeMap = { sawtooth: 'sawtooth', square: 'square', sine: 'sine', triangle: 'triangle', fm: 'sine', noise: 'sine' };
+    
+    for (let v = 0; v < Math.max(1, unisonVoices); v++) {
+        const osc = audioCtx.createOscillator();
+        osc.type = typeMap[oscType] || 'sawtooth';
+        
+        // Calculate frequency with detune for unison
+        const detuneOffset = unisonVoices > 1 ? (v - (unisonVoices-1)/2) * (unisonDetune * (100/unisonVoices)) : 0;
+        osc.frequency.value = freq;
+        osc.detune.value = detuneOffset;
+        
+        osc.connect(gainNode);
+        osc.start();
+        oscs.push(osc);
+    }
+    
+    // Store reference
+    oscillators.set(noteName, { oscs, gainNode });
+    
+    // Update UI
+    voiceCount++;
+    updateStatus();
+    showNowPlaying(noteName);
+    
+    // Update start screen hints
+    const kbdKey = keyboardLabels[parseInt(keyElement.dataset.index)];
+    if (kbdKey) {
+        document.querySelectorAll(`.key-hint[data-key="${kbdKey}"]`).forEach(el => el.classList.add('active'));
+    }
+}
+
+// ===== STOP NOTE =====
+function stopNote(keyElement) {
+    if (!keyElement.classList.contains('active')) return;
+    
+    keyElement.classList.remove('active');
+    const noteName = keyElement.dataset.note;
+    const release = getKnobValue('release');
+    
+    const data = oscillators.get(noteName);
+    if (data && audioCtx) {
+        // Fade out
+        data.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+        data.gainNode.gain.setValueAtTime(data.gainNode.gain.value, audioCtx.currentTime);
+        data.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + release);
+        
+        // Stop oscillators after release
+        data.oscs.forEach(osc => osc.stop(audioCtx.currentTime + release + 0.1));
+        oscillators.delete(noteName);
+        
+        setTimeout(() => { voiceCount = Math.max(0, voiceCount - 1); updateStatus(); }, release * 1000);
+    }
+    
+    // Update start screen hints
+    const kbdKey = keyboardLabels[parseInt(keyElement.dataset.index)];
+    if (kbdKey) {
+        document.querySelectorAll(`.key-hint[data-key="${kbdKey}"]`).forEach(el => el.classList.remove('active'));
+    }
+}
+
+// ===== KEYBOARD EVENTS =====
+document.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    const idx = keyMap[e.key.toLowerCase()];
+    if (idx !== undefined) {
+        const keys = keyboard.querySelectorAll('.key');
+        if (keys[idx]) playNote(keys[idx]);
+    }
+});
+
+document.addEventListener('keyup', e => {
+    const idx = keyMap[e.key.toLowerCase()];
+    if (idx !== undefined) {
+        const keys = keyboard.querySelectorAll('.key');
+        if (keys[idx]) stopNote(keys[idx]);
+    }
+});
+
+// Prevent scrolling when playing
+document.addEventListener('keydown', e => {
+    if (keyMap[e.key.toLowerCase()] !== undefined) {
+        e.preventDefault();
+    }
+});
+
+// ===== HELPER FUNCTIONS =====
+function getKnobValue(paramName) {
+    const knob = document.querySelector(`[data-param="${paramName}"]`);
+    if (!knob) return 0.5;
+    const container = knob.closest('.knob-item');
+    const valEl = container?.querySelector('.knob-value');
+    if (valEl) {
+        const num = parseFloat(valEl.textContent);
+        return isNaN(num) ? parseFloat(knob.dataset.default) : num;
+    }
+    return parseFloat(knob.dataset.default);
+}
+
+function updateStatus() {
+    document.getElementById('voiceCount').textContent = `${Math.min(voiceCount, 16)} / 16`;
+    document.getElementById('cpuUsage').textContent = `${Math.min(95, voiceCount * 6 + Math.random() * 4).toFixed(0)}%`;
+}
+
+function showNowPlaying(note) {
+    const el = document.getElementById('nowPlaying');
+    el.textContent = `♪ Playing: ${note}`;
+    el.classList.add('show');
+    clearTimeout(showNowPlaying.timeout);
+    showNowPlaying.timeout = setTimeout(() => el.classList.remove('remove'), 1500);
+}
+
+// Sound toggle
+document.getElementById('soundToggle')?.addEventListener('click', function() {
+    soundEnabled = !soundEnabled;
+    this.classList.toggle('active', soundEnabled);
+    this.textContent = soundEnabled ? '🔊' : '🔇';
+});
+
+// Randomize
+function randomizeAll() {
+    document.querySelectorAll('.knob').forEach(knob => {
+        const min = parseFloat(knob.dataset.min);
+        const max = parseFloat(knob.dataset.max);
+        const val = min + Math.random() * (max - min);
+        const norm = (val - min) / (max - min);
+        knob.style.setProperty('--value', norm);
+        knob.querySelector('.knob-indicator').style.transform = 
+            `translate(0,-50%) rotate(${-135 + norm * 270}deg)`;
+        const container = knob.closest('.knob-item');
+        const valEl = container.querySelector('.knob-value');
+        if (valEl) valEl.textContent = typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(2)) : val;
+    });
+    updateADSRVisual(); updateWaveform();
+}
+
+// ADSR Visual
+function updateADSRVisual() {
+    const path = document.getElementById('adsrPath');
+    if (!path) return;
+    const attack = getKnobValue('attack'), decay = getKnobValue('decay');
+    const sustain = getKnobValue('sustain'), release = getKnobValue('release');
+    const w=280, h=70, p=5, total=attack+decay+release+0.5;
+    const sx = t => p+(t/total)*(w-2*p)*0.85;
+    const sy = v => p+(1-v/100)*(h-2*p);
+    path.setAttribute('d', `M${p},${h-p} L${sx(0)},${sy(100)} L${sx(attack)},${p} L${sx(attack+decay)},${sy(sustain)} L${sx(attack+decay+3)},${sy(sustain)} L${sx(attack+decay+3+release)},${h-p}`);
+}
+
+// Waveform Display
+function updateWaveform() {
+    const canvas = document.getElementById('waveformCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth*2; canvas.height = canvas.offsetHeight*2;
+    ctx.scale(2,2);
+    const w=canvas.offsetWidth, h=canvas.offsetHeight;
+    const type = document.getElementById('osc1Type')?.value||'sawtooth';
+    const unison = getKnobValue('unisonVoices');
+    
+    ctx.fillStyle='#12121a'; ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#00D4FF'; ctx.lineWidth=1.5; ctx.beginPath();
+    
+    for(let x=0;x<w;x++){
+        const t=(x/w)*Math.PI*4, u=unison>1?unison:1;
+        let y = type==='sawtooth'?((t%(Math.PI*2))/(Math.PI*2))*2-1:
+              type==='square'?Math.sin(t)>0?1:-1:
+              type==='sine'?Math.sin(t):
+              type==='triangle'?Math.asin(Math.sin(t))*2/Math.PI:
+              type==='fm'?Math.sin(t+Math.sin(t*2.5)*3):
+              Math.sin(t);
+        if(unison>1){ y+=Math.sin(t*1.02+getKnobValue('unisonSpread')*0.01)*getKnobValue('unisonSpread')*0.002;
+                   y+=Math.sin(t*0.98-getKnobValue('unisonSpread')*0.01)*getKnobValue('unisonSpread')*0.002; }
+        const py=h/2-y*(h/2-5); x===0?ctx.moveTo(x,py):ctx.lineTo(x,py);
+    }
+    ctx.stroke();
+}
+
+// Visualizer Animation
+function drawVisualizer(){
+    const c=document.getElementById('visualizerCanvas'); if(!c)return;
+    const ctx=c.getContext('2d');
+    c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;ctx.scale(2,2);
+    const w=c.offsetWidth,h=c.offsetHeight;
+    ctx.fillStyle='#12121a';ctx.fillRect(0,0,w,h);
+    for(let i=0;i<64;i++){
+        const barH=(Math.sin(Date.now()*0.003+i*0.2)*0.5+0.5)*(Math.random()*0.3+0.2)*(voiceCount>0?0.85:0.12)*h;
+        const g=ctx.createLinearGradient(0,h,0,h-barH);
+        g.addColorStop(0,'#00D4FF');g.addColorStop(1,'#8B5CF6');
+        ctx.fillStyle=g;
+        ctx.fillRect(i*(w/64+1)-1,h-barH,w/64-1,barH);
+    }
+    requestAnimationFrame(drawVisualizer);
+}
+
+// Start screen keyboard hints
+document.querySelectorAll('.key-hint').forEach(hint => {
+    hint.addEventListener('mouseenter', () => hint.style.transform = 'scale(1.1)');
+    hint.addEventListener('mouseleave', () => hint.style.transform = '');
+});
+
+// Initialize
+updateADSRVisual();
+updateWaveform();
+drawVisualizer();
+
+console.log('%c🎹 MySynth PRO Ready!', 'color: #00D4FF; font-size: 20px; font-weight: bold;');
+console.log('%cClick "LAUNCH SYNTHESIZER" to start playing!', 'color: #8B5CF6; font-size: 12px;');
+</script>
+</body>
+</html>
