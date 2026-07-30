@@ -352,7 +352,7 @@ class VibeSearchEngine {
 
         terms.forEach(term => {
             // Direct vibe/tag matches
-            Object.entries(this.vibeIndex).forEach(([key, presets]) => {
+            Object.entries(this.vibeCategories).forEach(([key, presets]) => {
                 if (key.toLowerCase().includes(term) || term.includes(key.toLowerCase())) {
                     presets.forEach(preset => {
                         const id = preset.name + preset.artist;

@@ -44,9 +44,14 @@
     function setupViewToggle() {
         const stdBtn = document.getElementById('viewToggleStandard');
         const advBtn = document.getElementById('viewToggleAdvanced');
+        const backBtn = document.getElementById('backToStandardBtn');
 
         stdBtn?.addEventListener('click', () => showStandardView());
         advBtn?.addEventListener('click', () => showAdvancedView());
+        backBtn?.addEventListener('click', () => {
+            console.log('◀ Back to Standard clicked');
+            showStandardView();
+        });
     }
 
     function showStandardView() {
@@ -322,12 +327,61 @@
         showPresetDetail(preset);
     }
 
+    // ===== PARAMETER MAPPING (Preset names → Actual Knob names) =====
+    const PARAMETER_MAP = {
+        // Oscillator
+        'oscType': 'osc1Type',
+        'oscPitch': 'osc1Pitch',
+        'oscDetune': 'osc1Detune',
+        // Filter  
+        'filterCutoff': 'filter1Cutoff',
+        'filterReso': 'filter1Reso',
+        'filterEnv': 'filter1Env',
+        // Reverb
+        'reverbSize': 'revSize',
+        'reverbDecay': 'revDecay',
+        'reverbMix': 'revMix',
+        // Unison
+        'unison': 'unisonVoices'
+    };
+
+    /**
+     * Map preset parameters to actual knob parameters
+     * Converts friendly preset names to actual data-param names
+     */
+    function mapPresetParams(presetParams) {
+        const mapped = {};
+        Object.entries(presetParams).forEach(([key, value]) => {
+            const mappedKey = PARAMETER_MAP[key] || key;
+            mapped[mappedKey] = value;
+        });
+        
+        // Ensure critical defaults for audio engine
+        if (!mapped.osc1Type) mapped.osc1Type = 'sawtooth';
+        if (!mapped.unisonVoices) mapped.unisonVoices = 1;
+        if (!mapped.unisonDetune) mapped.unisonDetune = 10;
+        if (!mapped.attack) mapped.attack = 0.01;
+        if (!mapped.decay) mapped.decay = 0.2;
+        if (!mapped.sustain) mapped.sustain = 70;
+        if (!mapped.release) mapped.release = 0.3;
+        if (!mapped.filter1Cutoff) mapped.filter1Cutoff = 8000;
+        if (!mapped.filter1Reso) mapped.filter1Reso = 1;
+        
+        return mapped;
+    }
+
     function loadPresetImmediately(preset) {
         activePreset = preset;
         
+        // Map preset parameters to actual knob parameters
+        const mappedParams = mapPresetParams(preset.params);
+        
+        console.log('🎵 Loading preset:', preset.name);
+        console.log('   Mapped params:', mappedParams);
+        
         // Apply parameters
-        if (typeof setAllKnobValues === 'function' && preset.params) {
-            setAllKnobValues(preset.params);
+        if (typeof setAllKnobValues === 'function') {
+            setAllKnobValues(mappedParams);
         }
 
         // Update display
@@ -429,29 +483,30 @@
         }
 
         const currentParams = getAllKnobValues();
+        const baseParams = mapPresetParams(activePreset.params);
         let newParams;
 
         switch (toolId) {
             case 'variation-low':
-                newParams = window.PatchTools?.createVariation(activePreset.params, 'low');
+                newParams = window.PatchTools?.createVariation(baseParams, 'low');
                 break;
             case 'variation-med':
-                newParams = window.PatchTools?.createVariation(activePreset.params, 'medium');
+                newParams = window.PatchTools?.createVariation(baseParams, 'medium');
                 break;
             case 'variation-high':
-                newParams = window.PatchTools?.createVariation(activePreset.params, 'high');
+                newParams = window.PatchTools?.createVariation(baseParams, 'high');
                 break;
             case 'randomize':
-                newParams = window.PatchTools?.smartRandomize(activePreset.params, { variance: 0.3 });
+                newParams = window.PatchTools?.smartRandomize(baseParams, { variance: 0.3 });
                 break;
             case 'warmer':
-                newParams = {...activePreset.params, filterCutoff: (activePreset.params.filterCutoff || 2000) * 0.7};
+                newParams = {...baseParams, filter1Cutoff: (baseParams.filter1Cutoff || 2000) * 0.7};
                 break;
             case 'brighter':
-                newParams = {...activePreset.params, filterCutoff: (activePreset.params.filterCutoff || 2000) * 1.3};
+                newParams = {...baseParams, filter1Cutoff: (baseParams.filter1Cutoff || 2000) * 1.3};
                 break;
             case 'thicken':
-                newParams = {...activePreset.params, unisonVoices: Math.min(16, (activePreset.params.unisonVoices || 1) + 2)};
+                newParams = {...baseParams, unisonVoices: Math.min(16, (baseParams.unisonVoices || 1) + 2)};
                 break;
             default:
                 return;
