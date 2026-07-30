@@ -9,18 +9,26 @@
 <body>
     <div class="plugin-container">
         <div class="plugin-window">
-            <!-- HEADER -->
+            <!-- HEADER (Unified for both views) -->
             <div class="header">
                 <div class="logo">
-                    <button id="backToStandardBtn" title="Back to Standard View" style="background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;margin-right:10px;display:flex;align-items:center;gap:5px;transition:all 0.2s;">
-                        ◀ Standard
-                    </button>
                     <div class="logo-icon">M</div>
                     <div>
                         <div class="plugin-title">MY SYNTH PRO</div>
                         <div class="plugin-subtitle">ULTIMATE SYNTHESIS ENGINE</div>
                     </div>
                 </div>
+                
+                <!-- View Toggle (Professional - nested in header) -->
+                <div class="view-toggle-header">
+                    <button id="viewToggleStdHeader" class="view-toggle-btn-header active" data-view="standard">
+                        📱 Simple
+                    </button>
+                    <button id="viewToggleAdvHeader" class="view-toggle-btn-header" data-view="advanced">
+                        ⚙️ Advanced
+                    </button>
+                </div>
+
                 <div class="header-controls">
                     <div style="display:flex;gap:8px;align-items:center;">
                         <button class="preset-display" id="presetDisplay">Init Patch ▾</button>
@@ -1730,122 +1738,77 @@
                 </div>
             </div>
 
-            <!-- PITCH/MOD WHEELS & CONTROLS -->
-            <div class="wheels-container">
-                <!-- Pitch Bend Wheel -->
-                <div class="wheel-wrapper">
-                    <span class="wheel-label">Pitch</span>
-                    <div class="wheel-track" id="pitchWheelTrack">
-                        <div class="wheel-fill" id="pitchWheelFill" style="height: 50%;"></div>
-                        <div class="wheel-handle" id="pitchWheelHandle" style="bottom: calc(50% - 8px);"></div>
+            <!-- COMPACT BOTTOM SECTION: Wheels + Keyboard + Chord Bar (All Merged) -->
+            <div class="keyboard-section-merged">
+                <!-- Left: Pitch/Mod Wheels -->
+                <div class="wheels-inline">
+                    <div class="wheel-wrapper">
+                        <span class="wheel-label">Pitch</span>
+                        <div class="wheel-track" id="pitchWheelTrack">
+                            <div class="wheel-fill" id="pitchWheelFill" style="height: 50%;"></div>
+                            <div class="wheel-handle" id="pitchWheelHandle" style="bottom: calc(50% - 8px);"></div>
+                        </div>
+                        <span class="wheel-value" id="pitchWheelValue">0</span>
                     </div>
-                    <span class="wheel-value" id="pitchWheelValue">0</span>
-                </div>
-                
-                <!-- Modulation Wheel -->
-                <div class="wheel-wrapper">
-                    <span class="wheel-label">Mod</span>
-                    <div class="wheel-track" id="modWheelTrack">
-                        <div class="wheel-fill" id="modWheelFill" style="height: 0%;"></div>
-                        <div class="wheel-handle" id="modWheelHandle" style="bottom: -8px;"></div>
+                    <div class="wheel-wrapper">
+                        <span class="wheel-label">Mod</span>
+                        <div class="wheel-track" id="modWheelTrack">
+                            <div class="wheel-fill" id="modWheelFill" style="height: 0%;"></div>
+                            <div class="wheel-handle" id="modWheelHandle" style="bottom: -8px;"></div>
+                        </div>
+                        <span class="wheel-value" id="modWheelValue">0%</span>
                     </div>
-                    <span class="wheel-value" id="modWheelValue">0%</span>
+                    <!-- Mini Controls -->
+                    <div class="mini-controls-inline">
+                        <div class="glide-mini">
+                            <span>Glide</span>
+                            <input type="range" min="0" max="2000" value="100" id="glideTime" style="width:50px;height:3px;">
+                        </div>
+                        <div class="midi-status-mini">
+                            <div class="midi-indicator" id="midiIndicator"></div>
+                            <span id="midiStatusText" style="font-size:8px;">MIDI</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <!-- Glide Control -->
-                <div class="glide-control">
-                    <span style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">Glide</span>
-                    <div class="glide-toggle" id="glideToggle"></div>
-                    <input type="range" min="0" max="2000" value="100" id="glideTime" style="width:60px;height:4px;accent-color:var(--accent);">
-                    <span style="font-size:8px;color:var(--accent);" id="glideTimeDisplay">100ms</span>
-                </div>
-                
-                <!-- MIDI Status -->
-                <div class="midi-status">
-                    <div class="midi-indicator" id="midiIndicator"></div>
-                    <span id="midiStatusText">No MIDI</span>
-                </div>
-                
-                <!-- Recording Controls -->
-                <div class="recording-controls">
-                    <button class="rec-btn" id="recordBtn" title="Record Audio">⏺</button>
-                    <span class="rec-time" id="recTime">00:00</span>
-                    <button class="export-btn" id="exportPresetBtn" title="Export Preset as JSON">📤 Export</button>
-                    <button class="export-btn" id="importPresetBtn" title="Import Preset from JSON">📥 Import</button>
-                </div>
-            </div>
 
-            <!-- CHORD MODE & SCALE LOCK -->
-            <div class="chord-scale-bar">
-                <div class="chord-scale-item">
-                    <label>Scale:</label>
-                    <select id="scaleLockSelect" class="select-styled" style="padding:4px 6px;font-size:9px;">
-                        <option value="none">Off (Chromatic)</option>
-                        <option value="major" selected>Major</option>
-                        <option value="minor">Minor</option>
-                        <option value="harmonicMinor">Harmonic Minor</option>
-                        <option value="dorian">Dorian</option>
-                        <option value="mixolydian">Mixolydian</option>
-                        <option value="pentatonicMajor">Pentatonic Major</option>
-                        <option value="pentatonicMinor">Pentatonic Minor</option>
-                        <option value="blues">Blues</option>
-                        <option value="phrygian">Phrygian</option>
-                    </select>
+                <!-- Center: Keyboard -->
+                <div class="keyboard-main">
+                    <div class="keyboard" id="keyboard"></div>
                 </div>
-                <div class="chord-scale-item">
-                    <label>Root:</label>
-                    <select id="scaleRootSelect" class="select-styled" style="padding:4px 6px;font-size:9px;">
-                        <option value="C">C</option><option value="C#">C#</option><option value="D">D</option>
-                        <option value="D#">D#</option><option value="E">E</option><option value="F">F</option>
-                        <option value="F#">F#</option><option value="G">G</option><option value="G#">G#</option>
-                        <option value="A">A</option><option value="A#">A#</option><option value="B">B</option>
-                    </select>
-                </div>
-                <div class="chord-scale-item">
-                    <label>Chord:</label>
-                    <button id="chordModeBtn" class="">Chord Off</button>
-                    <select id="chordTypeSelect" class="select-styled" style="padding:4px 6px;font-size:9px;display:none;">
-                        <option value="major">Major</option>
-                        <option value="minor">Minor</option>
-                        <option value="dim">Diminished</option>
-                        <option value="aug">Augmented</option>
-                        <option value="maj7">Maj7</option>
-                        <option value="min7">Min7</option>
-                        <option value="dom7">Dom7</option>
-                        <option value="sus2">Sus2</option>
-                        <option value="sus4">Sus4</option>
-                        <option value="power">Power</option>
-                    </select>
-                </div>
-            </div>
 
-            <!-- KEYBOARD -->
-            <div class="keyboard-container">
-                <div class="keyboard" id="keyboard"></div>
-            </div>
-
-            <!-- VISUALIZER -->
-            <div class="visualizer">
-                <canvas id="visualizerCanvas"></canvas>
-            </div>
-
-            <!-- OUTPUT METERS -->
-            <div class="meters-section">
-                <div class="meter-label">📊 Output Level</div>
-                <div class="meter-row">
-                    <div class="meter-db-scale">
-                        <span>+6</span><span>0</span><span>-12</span><span>-24</span><span>-48</span><span>-∞</span>
+                <!-- Right: Scale/Chord + Meters -->
+                <div class="right-panel-inline">
+                    <!-- Chord/Scale Bar (compact) -->
+                    <div class="chord-scale-compact">
+                        <select id="scaleLockSelect" class="select-styled-mini" title="Scale">
+                            <option value="none">Chromatic</option>
+                            <option value="major" selected>Major</option>
+                            <option value="minor">Minor</option>
+                            <option value="pentatonicMajor">Penta Maj</option>
+                            <option value="blues">Blues</option>
+                        </select>
+                        <select id="scaleRootSelect" class="select-styled-mini" title="Root Note">
+                            <option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                            <option value="F">F</option><option value="G">G</option><option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
+                        <button id="chordModeBtn" class="chord-btn-mini">Chord Off</button>
                     </div>
-                    <div class="meter-stereo" id="meterLeft" style="position:relative;">
-                        <!-- Left channel segments generated by JS -->
-                        <div class="meter-peak-hold" id="peakHoldL"></div>
-                    </div>
-                    <div class="meter-stereo" id="meterRight" style="position:relative;">
-                        <!-- Right channel segments generated by JS -->
-                        <div class="meter-peak-hold" id="peakHoldR"></div>
-                    </div>
-                    <div class="meter-db-scale">
-                        <span>dB</span>
+                    
+                    <!-- Mini Meters -->
+                    <div class="meters-mini">
+                        <div class="meter-mini-channel">
+                            <span class="meter-mini-label">L</span>
+                            <div class="meter-mini-bar" id="meterLeftMini">
+                                <div class="meter-mini-fill"></div>
+                            </div>
+                        </div>
+                        <div class="meter-mini-channel">
+                            <span class="meter-mini-label">R</span>
+                            <div class="meter-mini-bar" id="meterRightMini">
+                                <div class="meter-mini-fill"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -175,6 +175,42 @@
             margin-top: -2px;
         }
 
+        /* ===== NEW: View Toggle in Header (Professional) ===== */
+        .view-toggle-header {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 3px;
+            gap: 2px;
+            border: 1px solid var(--border);
+        }
+
+        .view-toggle-btn-header {
+            padding: 5px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .view-toggle-btn-header:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .view-toggle-btn-header.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,212,255,0.3);
+        }
+
         .header-controls {
             display: flex;
             gap: 15px;
@@ -1591,3 +1627,233 @@
         .random-hist-items { display: flex; flex-wrap: wrap; gap: 4px; }
         .random-hist-item { padding: 3px 8px; font-size: 8px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
         .random-hist-item:hover { border-color: #FF5722; color: #FF5722; }
+
+        /* ===== COMPACT MERGED KEYBOARD SECTION (Professional DAW Layout) ===== */
+        
+        /* Main container for wheels + keyboard + chord/meters */
+        .keyboard-section-merged {
+            display: flex !important;
+            gap: 8px !important;
+            padding: 8px 12px !important;
+            background: linear-gradient(180deg, #14141e 0%, #0d0d14 100%) !important;
+            border-top: 1px solid var(--border) !important;
+            align-items: flex-end !important;
+            height: 95px !important;
+            max-height: 95px !important;
+            min-height: 95px !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* Wheels on left side (compact inline) */
+        .wheels-inline {
+            display: flex !important;
+            gap: 10px !important;
+            align-items: flex-end !important;
+            padding-right: 10px !important;
+            border-right: 1px solid rgba(255,255,255,0.1) !important;
+            height: 100% !important;
+        }
+
+        .wheels-inline .wheel-wrapper {
+            gap: 2px !important;
+        }
+
+        .wheels-inline .wheel-track {
+            width: 28px !important;
+            height: 65px !important;
+            border-radius: 14px !important;
+        }
+
+        .wheels-inline .wheel-handle {
+            width: 22px !important;
+            height: 12px !important;
+            border-radius: 6px !important;
+        }
+
+        .wheels-inline .wheel-label {
+            font-size: 7px !important;
+        }
+
+        .wheels-inline .wheel-value {
+            font-size: 7px !important;
+            min-width: 24px !important;
+        }
+
+        /* Mini controls next to wheels */
+        .mini-controls-inline {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            margin-left: 4px !important;
+        }
+
+        .glide-mini {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 2px !important;
+        }
+
+        .glide-mini span {
+            font-size: 7px !important;
+            color: var(--text-dim) !important;
+            text-transform: uppercase !important;
+        }
+
+        .midi-status-mini {
+            display: flex !important;
+            align-items: center !important;
+            gap: 3px !important;
+        }
+
+        .midi-status-mini .midi-indicator {
+            width: 6px !important;
+            height: 6px !important;
+        }
+
+        /* Keyboard in center (main area) */
+        .keyboard-main {
+            flex: 1 !important;
+            display: flex !important;
+            align-items: flex-end !important;
+            justify-content: center !important;
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+
+        .keyboard-main .keyboard {
+            height: 55px !important;
+            max-height: 55px !important;
+            width: 100% !important;
+        }
+
+        .keyboard-main .key {
+            width: 24px !important;
+            height: 48px !important;
+        }
+
+        .keyboard-main .key.black {
+            width: 14px !important;
+            height: 30px !important;
+        }
+
+        /* Right panel (chord/scale + meters) */
+        .right-panel-inline {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+            align-items: flex-end !important;
+            justify-content: space-between !important;
+            height: 100% !important;
+            padding-left: 10px !important;
+            border-left: 1px solid rgba(255,255,255,0.1) !important;
+        }
+
+        /* Compact chord/scale bar */
+        .chord-scale-compact {
+            display: flex !important;
+            gap: 4px !important;
+            align-items: center !important;
+        }
+
+        .select-styled-mini {
+            padding: 3px 6px !important;
+            font-size: 8px !important;
+            background: var(--bg-panel) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 4px !important;
+            color: var(--text) !important;
+            cursor: pointer !important;
+        }
+
+        .chord-btn-mini {
+            padding: 3px 8px !important;
+            font-size: 8px !important;
+            background: var(--bg-dark) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 4px !important;
+            color: var(--text-dim) !important;
+            cursor: pointer !important;
+        }
+
+        .chord-btn-mini.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent3)) !important;
+            color: #fff !important;
+            border-color: var(--accent) !important;
+        }
+
+        /* Mini meters */
+        .meters-mini {
+            display: flex !important;
+            gap: 8px !important;
+            align-items: flex-end !important;
+        }
+
+        .meter-mini-channel {
+            display: flex !important;
+            align-items: center !important;
+            gap: 3px !important;
+        }
+
+        .meter-mini-label {
+            font-size: 7px !important;
+            font-weight: 700 !important;
+            color: var(--accent) !important;
+            width: 10px !important;
+        }
+
+        .meter-mini-bar {
+            width: 50px !important;
+            height: 20px !important;
+            background: rgba(0,0,0,0.4) !important;
+            border-radius: 2px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            gap: 1px !important;
+        }
+
+        .meter-mini-fill {
+            width: 100% !important;
+            background: linear-gradient(180deg, #22c55e, #eab308, #ef4444) !important;
+            transition: height 0.05s !important;
+            border-radius: 1px !important;
+        }
+
+        /* Make plugin window fit screen */
+        .plugin-window {
+            max-height: calc(100vh - 20px) !important;
+            height: calc(100vh - 20px) !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* Tab nav - more compact */
+        .tab-nav {
+            padding: 6px 12px !important;
+            gap: 3px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .tab-btn {
+            padding: 5px 10px !important;
+            font-size: 9px !important;
+        }
+
+        /* Main content - takes remaining space */
+        .main-content {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            min-height: 0 !important;
+            padding: 8px !important;
+        }
+
+        /* Status bar - compact */
+        .status-bar {
+            padding: 5px 15px !important;
+            font-size: 8px !important;
+            flex-shrink: 0 !important;
+        }

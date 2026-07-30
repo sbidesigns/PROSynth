@@ -65,12 +65,24 @@
 
     // ===== VIEW TOGGLE =====
     function setupViewToggle() {
+        // Standard View toggle buttons (in Standard View top bar)
         const stdBtn = document.getElementById('viewToggleStandard');
         const advBtn = document.getElementById('viewToggleAdvanced');
+        
+        // Header toggle buttons (in Advanced View header - professional)
+        const headerStdBtn = document.getElementById('viewToggleStdHeader');
+        const headerAdvBtn = document.getElementById('viewToggleAdvHeader');
+        
+        // Back button in Advanced view
         const backBtn = document.getElementById('backToStandardBtn');
 
         stdBtn?.addEventListener('click', () => showStandardView());
         advBtn?.addEventListener('click', () => showAdvancedView());
+        
+        // Header toggle buttons
+        headerStdBtn?.addEventListener('click', () => showStandardView());
+        headerAdvBtn?.addEventListener('click', () => showAdvancedView());
+        
         backBtn?.addEventListener('click', () => {
             console.log('◀ Back to Standard clicked');
             showStandardView();
@@ -111,9 +123,13 @@
         standardView.style.height = '100vh';
         standardView.style.zIndex = '99999';
         
-        // Update toggle buttons
+        // Update toggle buttons (Standard View top bar)
         document.getElementById('viewToggleStandard')?.classList.add('active');
         document.getElementById('viewToggleAdvanced')?.classList.remove('active');
+        
+        // Update header toggle buttons (Advanced View header)
+        document.getElementById('viewToggleStdHeader')?.classList.add('active');
+        document.getElementById('viewToggleAdvHeader')?.classList.remove('active');
 
         console.log('✅ Standard View should now be VISIBLE!');
         
@@ -154,9 +170,13 @@
             pluginContainer.style.display = '';
         }
         
-        // Update toggle buttons
+        // Update toggle buttons (Standard View top bar)
         document.getElementById('viewToggleStandard')?.classList.remove('active');
         document.getElementById('viewToggleAdvanced')?.classList.add('active');
+        
+        // Update header toggle buttons (Advanced View header)
+        document.getElementById('viewToggleStdHeader')?.classList.remove('active');
+        document.getElementById('viewToggleAdvHeader')?.classList.add('active');
 
         console.log('✅ Advanced View should now be VISIBLE!');
     }
