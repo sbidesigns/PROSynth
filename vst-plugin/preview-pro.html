@@ -782,11 +782,14 @@
                     </div>
                 </div>
                 <div class="header-controls">
-                    <button class="preset-display" id="presetDisplay">Init Patch ▾</button>
-                    <button class="btn-icon" title="Randomize" id="randomizeBtn">🎲</button>
-                    <button class="btn-icon" title="Undo" id="undoBtn">↩</button>
-                    <button class="btn-icon" title="Redo" id="redoBtn">↪</button>
-                    <button class="btn-icon active" title="A/B Compare" id="compareBtn">AB</button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="preset-display" id="presetDisplay">Init Patch ▾</button>
+                        <button class="btn-icon" title="Load Preset" id="loadPresetBtn" style="font-size:10px;">📂</button>
+                        <button class="btn-icon" title="Save Preset" id="savePresetBtn" style="font-size:10px;">💾</button>
+                        <button class="btn-icon" title="Randomize" id="randomizeBtn">🎲</button>
+                        <button class="btn-icon" title="Undo" id="undoBtn">↩</button>
+                        <button class="btn-icon" title="A/B Compare" id="compareBtn">AB</button>
+                    </div>
                 </div>
             </div>
 
@@ -1131,7 +1134,7 @@
                                 <div class="knob-item">
                                     <div class="knob" data-param="filter2Env" data-min="0" data-max="100" data-default="25" data-unit="%">
                                         <div class="knob-ring"></div><div class="knob-fill"></div>
-                                        <div class="knod-inner"></div><div class="knob-indicator"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
                                     </div>
                                     <span class="knob-label">Env></span>
                                     <span class="knob-value">25%</span>
@@ -1689,6 +1692,25 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- SONG STARTER SECTION -->
+                        <div class="section arp-section" style="grid-column: span 3; margin-top:15px; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(0,212,255,0.05)); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 15px;">
+                            <div class="section-header" style="margin-bottom:12px;">
+                                <span class="section-title" style="background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎵 Song Starter</span>
+                                <span class="section-badge" style="background:var(--accent3);">AI-POWERED</span>
+                            </div>
+                            <p style="font-size:9px;color:var(--text-dim);margin-bottom:12px;">Generate complete musical starting points tailored to specific genres. Each starter configures oscillators, effects, envelopes, and arpeggiators for instant inspiration.</p>
+                            
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:15px;" id="genreGrid">
+                                <!-- Genre buttons will be populated by JS -->
+                            </div>
+                            
+                            <div id="songStarterInfo" style="background:var(--bg-panel);border-radius:8px;padding:12px;display:none;">
+                                <h4 style="font-size:11px;color:var(--accent);margin-bottom:8px;" id="starterTitle">Genre Name</h4>
+                                <p style="font-size:9px;color:var(--text-dim);line-height:1.5;" id="starterDescription">Description...</p>
+                                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;" id="starterParams"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2100,15 +2122,32 @@
         // ===== KEYBOARD =====
         const keyboard = document.getElementById('keyboard');
         const notes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-        const keyMap = {'a':0,'w':1,'s':2,'e':3,'d':4,'f':5,'t':6,'g':7,'y':8,'h':9,'u':10,'j':11,'k':12,'o':13,'l':14,'p':15,';':16,"'":17};
+        // Professional keyboard layout: ZSXDCVGBNJM (lower), Q23456790 (upper)
+        const keyMap = {
+            // Lower octave (Z row style - starts at C3)
+            'z':0, 's':1, 'x':2, 'd':3, 'c':4, 'v':5, 'g':6, 'b':7, 'n':8, 'j':9, 'm':10, ',':11,
+            // Upper octave (Q row style - starts at C4)
+            'q':12, '2':13, 'w':14, '3':15, 'e':16, 'r':17, '5':18, 't':19, '6':20, 'y':21, '7':22, 'u':23
+        };
         
-        for (let i = 0; i < 22; i++) {
+        const keyLabels = ['Z','S','X','D','C','V','G','B','N','J','M',',','Q','2','W','3','E','R','5','T','6','Y','7','U'];
+        
+        for (let i = 0; i < 24; i++) {
             const noteIdx = i % 12;
             const isBlack = notes[noteIdx].includes('#');
             const key = document.createElement('div');
             key.className = `key${isBlack ? ' black' : ''}`;
             key.dataset.note = `${notes[noteIdx]}${3 + Math.floor(i/12)}`;
             key.dataset.freq = (440 * Math.pow(2, (i - 9) / 12)).toFixed(1);
+            
+            // Add keyboard shortcut label
+            if (!isBlack && keyLabels[i]) {
+                const label = document.createElement('span');
+                label.className = 'key-label';
+                label.textContent = keyLabels[i];
+                key.appendChild(label);
+            }
+            
             keyboard.appendChild(key);
         }
 
@@ -2238,32 +2277,351 @@
         updateWaveform();
         drawVisualizer();
 
-        // Randomize button
-        document.getElementById('randomizeBtn')?.addEventListener('click', () => {
+        // ===== PRESET MANAGEMENT =====
+        let currentPresetName = 'Init Patch';
+        let presetHistory = [];
+        let historyIndex = -1;
+        
+        function getAllKnobValues() {
+            const values = {};
             knobs.forEach(knob => {
-                const min = parseFloat(knob.dataset.min);
-                const max = parseFloat(knob.dataset.max);
-                const randomVal = min + Math.random() * (max - min);
-                // Trigger visual update by simulating drag
-                const container = knob.closest('.knob-item') || knob.parentElement;
-                const indicator = knob.querySelector('.knob-indicator');
-                const normalized = (randomVal - min) / (max - min);
-                const angle = -135 + normalized * 270;
-                knob.style.setProperty('--value', normalized);
-                if (indicator) indicator.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
-                
-                const valueDisplay = container.querySelector('.knob-value');
-                if (valueDisplay) {
-                    const unit = knob.dataset.unit || '';
-                    if (unit === '%') valueDisplay.textContent = `${Math.round(randomVal)}%`;
-                    else if (unit === 'Hz') valueDisplay.textContent = randomVal >= 1000 ? `${(randomVal/1000).toFixed(1)} kHz` : `${Math.round(randomVal)} Hz`;
-                    else if (unit === 'dB') valueDisplay.textContent = `${randomVal.toFixed(1)} dB`;
-                    else valueDisplay.textContent = Number.isInteger(randomVal) ? randomVal : randomVal.toFixed(2);
+                values[knob.dataset.param] = getKnobValue(knob.dataset.param);
+            });
+            // Also capture select values
+            document.querySelectorAll('.select-styled').forEach(select => {
+                if(select.id) values[select.id] = select.value;
+            });
+            return values;
+        }
+        
+        function setAllKnobValues(values) {
+            Object.entries(values).forEach(([param, value]) => {
+                const knob = document.querySelector(`[data-param="${param}"]`);
+                if (knob) {
+                    setKnobValue(knob, parseFloat(value));
+                } else {
+                    const select = document.getElementById(param);
+                    if(select) select.value = value;
                 }
             });
             updateADSRVisual();
             updateWaveform();
+        }
+        
+        function setKnobValue(knob, value) {
+            const min = parseFloat(knob.dataset.min);
+            const max = parseFloat(knob.dataset.max);
+            const container = knob.closest('.knob-item') || knob.parentElement;
+            const indicator = knob.querySelector('.knob-indicator');
+            const normalized = (value - min) / (max - min);
+            const angle = -135 + normalized * 270;
+            knob.style.setProperty('--value', normalized);
+            if (indicator) indicator.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
+            
+            const valueDisplay = container.querySelector('.knob-value');
+            if (valueDisplay) {
+                const unit = knob.dataset.unit || '';
+                if (unit === '%') valueDisplay.textContent = `${Math.round(value)}%`;
+                else if (unit === 'Hz') valueDisplay.textContent = value >= 1000 ? `${(value/1000).toFixed(1)} kHz` : `${Math.round(value)} Hz`;
+                else if (unit === 'dB') valueDisplay.textContent = `${value.toFixed(1)} dB`;
+                else if (unit === 'st') valueDisplay.textContent = `${value} st`;
+                else if (unit === '¢') valueDisplay.textContent = `${value} ¢`;
+                else valueDisplay.textContent = Number.isInteger(value) ? value : value.toFixed(2);
+            }
+        }
+        
+        function saveToHistory() {
+            presetHistory = presetHistory.slice(0, historyIndex + 1);
+            presetHistory.push({ name: currentPresetName, values: getAllKnobValues(), timestamp: Date.now() });
+            historyIndex++;
+            if (presetHistory.length > 50) { presetHistory.shift(); historyIndex--; }
+        }
+        
+        // Save Preset
+        document.getElementById('savePresetBtn')?.addEventListener('click', () => {
+            const name = prompt('Enter preset name:', currentPresetName);
+            if (!name) return;
+            
+            const presets = JSON.parse(localStorage.getItem('mysynth_presets') || '{}');
+            presets[name] = {
+                values: getAllKnobValues(),
+                created: new Date().toISOString()
+            };
+            localStorage.setItem('mysynth_presets', JSON.stringify(presets));
+            currentPresetName = name;
+            document.getElementById('presetDisplay').textContent = name + ' ▾';
+            showNotification(`Preset "${name}" saved!`);
         });
+        
+        // Load Preset
+        document.getElementById('loadPresetBtn')?.addEventListener('click', () => {
+            const presets = JSON.parse(localStorage.getItem('mysynth_presets') || '{}');
+            const names = Object.keys(presets);
+            if (names.length === 0) {
+                showNotification('No saved presets found. Save a preset first!');
+                return;
+            }
+            
+            // Create custom dropdown
+            const select = document.createElement('div');
+            select.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
+                <div style="background:var(--bg-panel);border-radius:12px;padding:20px;min-width:300px;border:1px solid var(--border);max-height:80vh;overflow-y:auto;">
+                    <h3 style="color:var(--accent);margin-bottom:15px;font-size:14px;">📂 Load Preset</h3>
+                    ${names.map(n => `<button style="display:block;width:100%;padding:10px;margin-bottom:5px;background:var(--bg-section);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;text-align:left;font-size:11px;" data-preset="${n}">${n}<br><small style="color:var(--text-dim);">${new Date(presets[n].created).toLocaleDateString()}</small></button>`).join('')}
+                    <button style="margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;cursor:pointer;" id="cancelLoad">Cancel</button>
+                </div></div>`;
+            document.body.appendChild(select);
+            
+            select.querySelectorAll('[data-preset]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const n = btn.dataset.preset;
+                    setAllKnobValues(presets[n].values);
+                    currentPresetName = n;
+                    document.getElementById('presetDisplay').textContent = n + ' ▾';
+                    select.remove();
+                    showNotification(`Loaded "${n}"`);
+                });
+            });
+            
+            select.querySelector('#cancelLoad').addEventListener('click', () => select.remove());
+            select.addEventListener('click', e => { if(e.target === select.firstChild) select.remove(); });
+        });
+        
+        // Undo
+        document.getElementById('undoBtn')?.addEventListener('click', () => {
+            if (historyIndex > 0) {
+                historyIndex--;
+                setAllKnobValues(presetHistory[historyIndex].values);
+                showNotification('Undo: ' + presetHistory[historyIndex].name);
+            }
+        });
+        
+        // Notification helper
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `position:fixed;top:20px;right:20px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#000;padding:12px 20px;border-radius:8px;font-size:12px;font-weight:600;z-index:99999;animation:fadeIn 0.3s ease;box-shadow:0 10px 40px rgba(0,0,0,0.5);`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 2500);
+        }
+        
+        // ===== SMART RANDOMIZE =====
+        const soundProfiles = [
+            { name: 'Fat Lead', oscType:'sawtooth', unison:5, detune:18, attack:0.02, decay:0.3, sustain:70, release:0.4, filterCutoff:4000, filterReso:25, reverb:30, delay:25 },
+            { name: 'Warm Pad', oscType:'sawtooth', unison:7, detune:12, attack:0.8, decay:0.5, sustain:85, release:1.5, filterCutoff:2000, filterReso:15, reverb:55, delay:35 },
+            { name: 'Pluck Bass', oscType:'triangle', unison:2, detune:5, attack:0.005, decay:0.15, sustain:20, release:0.2, filterCutoff:3000, filterReso:45, reverb:15, delay:10 },
+            { name: 'Crystal Bell', oscType:'sine', unison:3, detune:3, attack:0.001, decay:1.2, sustain:10, release:2.0, filterCutoff:8000, filterReso:60, reverb:65, delay:20 },
+            { name: 'Dirty Bass', oscType:'square', unison:4, detune:8, attack:0.01, decay:0.4, sustain:60, release:0.3, filterCutoff:800, filterReso:70, reverb:10, delay:15, drive:45 },
+            { name: 'Soft Piano', oscType:'triangle', unison:3, detune:4, attack:0.01, decay:0.3, sustain:40, release:1.0, filterCutoff:5000, filterReso:10, reverb:40, delay:20 },
+            { name: 'Epic Strings', oscType:'sawtooth', unison:8, detune:15, attack:1.0, decay:0.8, sustain:90, release:2.5, filterCutoff:2500, filterReso:20, reverb:70, delay:40 },
+            { name: 'Aggressive Synth', oscType:'square', unison:6, detune:25, attack:0.001, decay:0.2, sustain:75, release:0.15, filterCutoff:3500, filterReso:55, reverb:20, delay:25, drive:30 },
+            { name: 'Ambient Drone', oscType:'sine', unison:4, detune:30, attack:2.0, decay:1.5, sustain:95, release:4.0, filterCutoff:1500, filterReso:5, reverb:80, delay:50 },
+            { name: 'Vintage Organ', oscType:'square', unison:2, detune:2, attack:0.01, decay:0.1, sustain:90, release:0.3, filterCutoff:6000, filterReso:8, reverb:25, delay:15 },
+            { name: 'Brass Section', oscType:'sawtooth', unison:5, detune:10, attack:0.15, decay:0.3, sustain:80, release:0.5, filterCutoff:3000, filterReso:25, reverb:35, delay:20 },
+            { name: 'Digital Lead', oscType:'sine', unison:4, detune:6, attack:0.005, decay:0.2, sustain:65, release:0.3, filterCutoff:7000, filterReso:35, reverb:20, delay:30 },
+            { name: 'Deep Sub', oscType:'sine', unison:1, detune:0, attack:0.01, decay:0.5, sustain:80, release:0.5, filterCutoff:400, filterReso:30, reverb:15, delay:10 },
+            { name: 'Bright Arp', oscType:'square', unison:3, detune:8, attack:0.002, decay:0.1, sustain:50, release:0.15, filterCutoff:5500, filterReso:40, reverb:25, delay:35 },
+            { name: 'Dark Atmosphere', oscType:'sawtooth', unison:6, detune:20, attack:1.5, decay:1.0, sustain:75, release:3.0, filterCutoff:1000, filterReso:12, reverb:75, delay:55 },
+            { name: 'Metallic FM', oscType:'fm', unison:2, detune:15, attack:0.01, decay:0.4, sustain:55, release:0.6, filterCutoff:4500, filterReso:50, reverb:30, delay:20 },
+            { name: 'Glitchy', oscType:'square', unison:3, detune:35, attack:0.001, decay:0.08, sustain:30, release:0.1, filterCutoff:6500, filterReso:65, reverb:10, delay:5, drive:55 },
+            { name: 'Lush Pad', oscType:'sawtooth', unison:9, detune:8, attack:1.2, decay:0.6, sustain:88, release:3.0, filterCutoff:2800, filterReso:12, reverb:68, delay:42 },
+            { name: 'Percussive', oscType:'noise', unison:1, detune:0, attack:0.001, decay:0.12, sustain:5, release:0.08, filterCutoff:9000, filterReso:40, reverb:18, delay:8 },
+            { name: 'Wobbly Bass', oscType:'sawtooth', unison:3, detune:6, attack:0.01, decay:0.3, sustain:70, release:0.4, filterCutoff:1200, filterReso:65, reverb:20, delay:25, drive:40 }
+        ];
+        
+        let lastRandomProfile = null;
+        
+        document.getElementById('randomizeBtn')?.addEventListener('click', () => {
+            saveToHistory();
+            
+            // Pick a complementary profile (different from last)
+            let availableProfiles = soundProfiles.filter(p => p !== lastRandomProfile);
+            const profile = availableProfiles[Math.floor(Math.random() * availableProfiles.length)];
+            lastRandomProfile = profile;
+            
+            // Apply base profile with slight variation for uniqueness
+            const variation = () => (Math.random() - 0.5) * 0.2; // ±10% variation
+            
+            const targetValues = {
+                osc1Pitch: profile.oscType === 'sine' ? 0 : (profile.oscType === 'square' ? -12 : (profile.oscType === 'sawtooth' ? 0 : 7)),
+                osc1Detune: (profile.detune || 5) * (1 + variation()),
+                unisonVoices: profile.unison || 3,
+                unisonDetune: (profile.detune || 10) * (1 + variation()),
+                attack: Math.max(0.001, profile.attack * (1 + variation())),
+                decay: Math.max(0.01, profile.decay * (1 + variation())),
+                sustain: Math.max(0, Math.min(100, profile.sustain * (1 + variation()))),
+                release: Math.max(0.01, profile.release * (1 + variation())),
+                filter1Cutoff: profile.filterCutoff * (1 + variation()),
+                filter1Resonance: profile.filterReso * (1 + variation()),
+                reverbSize: profile.reverb || 30,
+                reverbMix: (profile.reverb || 30) * 0.8,
+                delayTime: (profile.delay || 20) * 10,
+                delayFeedback: (profile.delay || 20) * 0.4,
+                driveAmount: profile.drive || 0,
+                masterGain: Math.random() * 6 - 3 // Random master position
+            };
+            
+            // Set oscillator type
+            const oscSelect = document.getElementById('osc1Type');
+            if(oscSelect) oscSelect.value = profile.oscType;
+            
+            // Apply all values
+            Object.entries(targetValues).forEach(([param, value]) => {
+                const knob = document.querySelector(`[data-param="${param}"]`);
+                if (knob) setKnobValue(knob, value);
+            });
+            
+            // Add some extra randomness to non-critical params for true uniqueness
+            knobs.forEach(knob => {
+                if (!targetValues[knob.dataset.param] && !['osc1Pos'].includes(knob.dataset.param)) {
+                    const min = parseFloat(knob.dataset.min);
+                    const max = parseFloat(knob.dataset.max);
+                    // Smaller range for more musical results
+                    const range = (max - min) * 0.3;
+                    const mid = (min + max) / 2;
+                    const randomVal = mid + (Math.random() - 0.5) * range;
+                    setKnobValue(knob, Math.max(min, Math.min(max, randomVal)));
+                }
+            });
+            
+            currentPresetName = profile.name + ' (Randomized)';
+            document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
+            updateADSRVisual();
+            updateWaveform();
+            showNotification(`🎲 ${profile.name} - Unique Variation Created!`);
+        });
+        
+        // ===== SONG STARTER SYSTEM =====
+        const songStarters = [
+            {
+                genre: 'EDM / Festival', icon: '🎆', color: '#FF006E',
+                description: 'High-energy festival anthem with massive supersaw leads, pumping sidechain compression, and euphoric builds.',
+                params: { osc1Type:'sawtooth', unisonVoices:16, unisonDetune:25, attack:0.03, decay:0.4, sustain:85, release:0.8, filter1Cutoff:3500, filter1Resonance:35, reverbMix:35, delayTime:380, delayFeedback:45, driveAmount:25, compRatio:8, arpMode:'UpDown', arpRate:8, arpOctaves:2 }
+            },
+            {
+                genre: 'Hip Hop / Trap', icon: '🎤', color: '#8B5CF6',
+                description: 'Dark trap atmosphere with deep 808-style bass, eerie pads, and crisp hi-hat-ready plucks.',
+                params: { osc1Type:'sine', unisonVoices:2, unisonDetune:5, attack:0.01, decay:0.6, sustain:75, release:0.5, filter1Cutoff:450, filter1Resonance:45, reverbMix:45, delayTime:270, delayFeedback:30, driveAmount:40, arpMode:'Random', arpRate:16, seqScale:'Minor' }
+            },
+            {
+                genre: 'Lo-Fi / Chill', icon: '☕', color: '#F59E0B',
+                description: 'Warm lo-fi aesthetics with vinyl crackle vibes, soft jazz chords, and nostalgic warmth.',
+                params: { osc1Type:'triangle', unisonVoices:4, unisonDetune:8, attack:0.9, decay:0.5, sustain:80, release:2.0, filter1Cutoff:1800, filter1Resonance:15, reverbMix:55, delayTime:420, delayFeedback:35, eqLow:-4, eqHigh:-8, arpMode:'Chord' }
+            },
+            {
+                genre: 'Synthwave / Retro', icon: '🌴', color: '#EC4899',
+                description: '80s nostalgia with glossy neon pads, driving basslines, and cinematic synth brass.',
+                params: { osc1Type:'sawtooth', unisonVoices:8, unisonDetune:12, attack:0.15, decay:0.3, sustain:78, release:0.6, filter1Cutoff:2800, filter1Resonance:28, reverbMix:48, delayTime:320, delayFeedback:50, delayMix:40, chorusDepth:65, chorusRate:3.5, arpMode:'Up', arpRate:12, arpOctaves:2 }
+            },
+            {
+                genre: 'Ambient / Cinematic', icon: '🎬', color: '#06B6D4',
+                description: 'Vast atmospheric soundscapes with evolving textures, ethereal pads, and emotional depth.',
+                params: { osc1Type:'sine', unisonVoices:7, unisonDetune:28, attack:2.5, decay:1.8, sustain:92, release:4.5, filter1Cutoff:1200, filter1Resonance:8, reverbMix:72, reverbSize:85, delayTime:850, delayFeedback:55, stereoWidth:180, eqLow:3, arpGate:60 }
+            },
+            {
+                genre: 'House / Tech', icon: '🏠', color: '#10B981',
+                description: 'Groovy house foundation with organ stabs, funky bass, and dancefloor energy.',
+                params: { osc1Type:'square', unisonVoices:3, unisonDetune:6, attack:0.01, decay:0.2, sustain:70, release:0.3, filter1Cutoff:2200, filter1Resonance:32, reverbMix:25, delayTime:180, delayFeedback:28, driveAmount:20, arpMode:'Up', arpRate:16, seqScale:'Mixolydian' }
+            },
+            {
+                genre: 'Dubstep / Riddim', icon: '💥', color: '#EF4444',
+                description: 'Aggressive mid-range growls, screaming leads, and earth-shaking drops.',
+                params: { osc1Type:'sawtooth', unisonVoices:6, unisonDetune:35, attack:0.005, decay:0.15, sustain:65, release:0.2, filter1Cutoff:1500, filter1Resonance:68, reverbMix:18, delayTime:140, delayFeedback:22, driveAmount:70, filter1Type:'LP24', arpMode:'Random', arpRate:32, arpGate:50 }
+            },
+            {
+                genre: 'Jazz / Neo-Soul', icon: '🎷', color: '#F97316',
+                description: 'Smooth electric piano tones, warm Rhodes-style tines, and soulful chord voicings.',
+                params: { osc1Type:'triangle', unisonVoices:3, unisonDetune:3, attack:0.002, decay:0.4, sustain:55, release:1.2, filter1Cutoff:5200, filter1Resonance:18, reverbMix:42, delayTime:280, delayFeedback:25, chorusDepth:40, chorusRate:2.8, eqMid:4, arpMode:'Chord' }
+            },
+            {
+                genre: 'Rock / Metal', icon: '🎸', color: '#DC2626',
+                description: 'Aggressive distorted leads, power guitar-style tones, and arena-filling presence.',
+                params: { osc1Type:'square', unisonVoices:4, unisonDetune:10, attack:0.001, decay:0.25, sustain:72, release:0.25, filter1Cutoff:3800, filter1Resonance:42, reverbMix:20, delayTime:120, delayFeedback:18, driveAmount:85, compRatio:12, compMakeup:8, eqLow:6, eqHigh:4 }
+            },
+            {
+                genre: 'Classical / Orchestral', icon: '🎻', color: '#7C3AED',
+                description: 'Lush string ensembles, orchestral textures, and timeless classical arrangements.',
+                params: { osc1Type:'sawtooth', unisonVoices:12, unisonDetune:6, attack:1.8, decay:0.6, sustain:88, release:3.2, filter1Cutoff:2400, filter1Resonance:10, reverbMix:68, reverbSize:78, delayTime:450, delayFeedback:38, stereoWidth:160, eqLow:2, eqHigh:6, arpMode:'As Played' }
+            },
+            {
+                genre: 'Pop / Top 40', icon: '⭐', color: '#EAB308',
+                description: 'Radio-ready modern pop sounds with bright hooks, catchy melodies, and polished production.',
+                params: { osc1Type:'sawtooth', unisonVoices:5, unisonDetune:8, attack:0.02, decay:0.25, sustain:68, release:0.4, filter1Cutoff:4800, filter1Resonance:22, reverbMix:30, delayTime:240, delayFeedback:32, chorusDepth:35, chorusRate:2.2, eqHigh:5, arpMode:'UpDown', arpRate:8 }
+            },
+            {
+                genre: 'Drill / Phonk', icon: '🔥', color: '#991B1B',
+                description: 'Dark drill atmospherics with haunting melodies, cowbell-ready bells, and trap energy.',
+                params: { osc1Type:'sine', unisonVoices:2, unisonDetune:12, attack:0.008, decay:0.8, sustain:45, release:1.0, filter1Cutoff:3200, filter1Resonance:52, reverbMix:50, delayTime:330, delayFeedback:40, driveAmount:35, arpMode:'Down', arpRate:24, seqScale:'Harmonic Minor' }
+            }
+        ];
+        
+        // Populate genre grid
+        const genreGrid = document.getElementById('genreGrid');
+        if(genreGrid) {
+            songStarters.forEach(starter => {
+                const btn = document.createElement('button');
+                btn.className = 'genre-btn';
+                btn.style.cssText = `padding:12px 8px;background:var(--bg-section);border:1px solid ${starter.color}40;border-radius:8px;color:var(--text);cursor:pointer;text-align:center;transition:all 0.2s;font-size:10px;`;
+                btn.innerHTML = `<div style="font-size:20px;margin-bottom:4px;">${starter.icon}</div><div style="font-weight:600;">${starter.genre}</div>`;
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.background = `${starter.color}20`;
+                    btn.style.borderColor = starter.color;
+                    btn.style.transform = 'translateY(-2px)';
+                    showSongStarterInfo(starter);
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.background = 'var(--bg-section)';
+                    btn.style.borderColor = `${starter.color}40`;
+                    btn.style.transform = 'none';
+                });
+                btn.addEventListener('click', () => applySongStarter(starter));
+                genreGrid.appendChild(btn);
+            });
+        }
+        
+        function showSongStarterInfo(starter) {
+            const info = document.getElementById('songStarterInfo');
+            const title = document.getElementById('starterTitle');
+            const desc = document.getElementById('starterDescription');
+            const params = document.getElementById('starterParams');
+            if(!info || !title || !desc || !params) return;
+            
+            info.style.display = 'block';
+            title.textContent = `${starter.icon} ${starter.genre}`;
+            desc.textContent = starter.description;
+            
+            params.innerHTML = Object.entries(starter.params).slice(0, 8).map(([k,v]) => 
+                `<span style="background:${starter.color}20;color:${starter.color};padding:3px 8px;border-radius:4px;font-size:8px;">${k}: ${v}</span>`
+            ).join('');
+        }
+        
+        function applySongStarter(starter) {
+            saveToHistory();
+            
+            // Apply all parameters from the starter
+            Object.entries(starter.params).forEach(([key, value]) => {
+                // Handle selects
+                if(['osc1Type', 'arpMode', 'seqScale', 'seqRoot', 'filter1Type'].includes(key)) {
+                    const el = document.getElementById(key);
+                    if(el) el.value = value;
+                    return;
+                }
+                
+                // Handle knobs
+                const knob = document.querySelector(`[data-param="${key}"]`);
+                if(knob) {
+                    // Convert string values to numbers where needed
+                    let numValue = parseFloat(value) || value;
+                    setKnobValue(knob, numValue);
+                }
+            });
+            
+            currentPresetName = `Song Starter: ${starter.genre}`;
+            document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
+            updateADSRVisual();
+            updateWaveform();
+            showNotification(`${starter.icon} ${starter.genre} Song Starter Applied!`);
+        }
     </script>
 </body>
 </html>
