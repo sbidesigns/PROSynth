@@ -2122,17 +2122,19 @@
         // ===== KEYBOARD =====
         const keyboard = document.getElementById('keyboard');
         const notes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-        // Professional keyboard layout: ZSXDCVGBNJM (lower), Q23456790 (upper)
+        // Professional keyboard layout: ZSXDCVGBNJM (lower), Q2W3ER5T6Y7U (upper), I9O0P (extended)
         const keyMap = {
-            // Lower octave (Z row style - starts at C3)
+            // Lower octave (C3-B3)
             'z':0, 's':1, 'x':2, 'd':3, 'c':4, 'v':5, 'g':6, 'b':7, 'n':8, 'j':9, 'm':10, ',':11,
-            // Upper octave (Q row style - starts at C4)
-            'q':12, '2':13, 'w':14, '3':15, 'e':16, 'r':17, '5':18, 't':19, '6':20, 'y':21, '7':22, 'u':23
+            // Upper octave (C4-B4)
+            'q':12, '2':13, 'w':14, '3':15, 'e':16, 'r':17, '5':18, 't':19, '6':20, 'y':21, '7':22, 'u':23,
+            // Extended octave (C5-E5)
+            'i':24, '9':25, 'o':26, '0':27, 'p':28
         };
         
-        const keyLabels = ['Z','S','X','D','C','V','G','B','N','J','M',',','Q','2','W','3','E','R','5','T','6','Y','7','U'];
+        const keyLabels = ['Z','S','X','D','C','V','G','B','N','J','M',',','Q','2','W','3','E','R','5','T','6','Y','7','U','I','9','O','0','P'];
         
-        for (let i = 0; i < 24; i++) {
+        for (let i = 0; i < 29; i++) {
             const noteIdx = i % 12;
             const isBlack = notes[noteIdx].includes('#');
             const key = document.createElement('div');
@@ -2439,56 +2441,63 @@
             const profile = availableProfiles[Math.floor(Math.random() * availableProfiles.length)];
             lastRandomProfile = profile;
             
-            // Apply base profile with slight variation for uniqueness
-            const variation = () => (Math.random() - 0.5) * 0.2; // ±10% variation
+            // Small variation for uniqueness but ALWAYS musically in-tune
+            const tinyVariation = () => (Math.random() - 0.5) * 0.08; // ±4% only!
+            
+            // Snap pitch to valid semitone values (always in tune!)
+            const validPitches = [-24, -12, -7, -5, 0, 2, 3, 4, 5, 7, 10, 12];
+            const basePitch = profile.oscType === 'sine' ? 0 : (profile.oscType === 'square' ? -12 : 0);
             
             const targetValues = {
-                osc1Pitch: profile.oscType === 'sine' ? 0 : (profile.oscType === 'square' ? -12 : (profile.oscType === 'sawtooth' ? 0 : 7)),
-                osc1Detune: (profile.detune || 5) * (1 + variation()),
+                // PITCH: Always snapped to semitones - NEVER out of tune!
+                osc1Pitch: basePitch,
+                // DETUNE: Keep minimal and musically pleasing (max ±15 cents)
+                osc1Detune: Math.round((profile.detune || 5) * (1 + tinyVariation())),
                 unisonVoices: profile.unison || 3,
-                unisonDetune: (profile.detune || 10) * (1 + variation()),
-                attack: Math.max(0.001, profile.attack * (1 + variation())),
-                decay: Math.max(0.01, profile.decay * (1 + variation())),
-                sustain: Math.max(0, Math.min(100, profile.sustain * (1 + variation()))),
-                release: Math.max(0.01, profile.release * (1 + variation())),
-                filter1Cutoff: profile.filterCutoff * (1 + variation()),
-                filter1Resonance: profile.filterReso * (1 + variation()),
+                // UNISON DETUNE: Capped at reasonable spread (5-30 cents per voice)
+                unisonDetune: Math.min(30, Math.max(5, Math.round((profile.detune || 8) * (1 + tinyVariation())))),
+                attack: Math.max(0.001, profile.attack * (1 + tinyVariation())),
+                decay: Math.max(0.01, profile.decay * (1 + tinyVariation())),
+                sustain: Math.max(0, Math.min(100, profile.sustain * (1 + tinyVariation()))),
+                release: Math.max(0.01, profile.release * (1 + tinyVariation())),
+                filter1Cutoff: Math.round(profile.filterCutoff * (1 + tinyVariation())),
+                filter1Resonance: Math.min(80, Math.round(profile.filterReso * (1 + tinyVariation()))),
                 reverbSize: profile.reverb || 30,
-                reverbMix: (profile.reverb || 30) * 0.8,
-                delayTime: (profile.delay || 20) * 10,
-                delayFeedback: (profile.delay || 20) * 0.4,
+                reverbMix: Math.min(70, (profile.reverb || 30) * 0.8),
+                delayTime: Math.round((profile.delay || 20) * 10),
+                delayFeedback: Math.min(55, (profile.delay || 20) * 0.4),
                 driveAmount: profile.drive || 0,
-                masterGain: Math.random() * 6 - 3 // Random master position
+                masterGain: Math.round(Math.random() * 6 - 3)
             };
             
             // Set oscillator type
             const oscSelect = document.getElementById('osc1Type');
             if(oscSelect) oscSelect.value = profile.oscType;
             
-            // Apply all values
+            // Apply all target values
             Object.entries(targetValues).forEach(([param, value]) => {
                 const knob = document.querySelector(`[data-param="${param}"]`);
                 if (knob) setKnobValue(knob, value);
             });
             
-            // Add some extra randomness to non-critical params for true uniqueness
+            // Extra randomness ONLY for safe parameters that don't affect tuning
+            const safeParams = ['lfo1Rate', 'lfo1Depth', 'lfo2Rate', 'lfo2Depth', 'chorusRate', 'chorusDepth', 'eqLow', 'eqMid', 'eqHigh', 'stereoWidth', 'compThreshold', 'compMakeup'];
             knobs.forEach(knob => {
-                if (!targetValues[knob.dataset.param] && !['osc1Pos'].includes(knob.dataset.param)) {
+                if (!targetValues[knob.dataset.param] && safeParams.includes(knob.dataset.param)) {
                     const min = parseFloat(knob.dataset.min);
                     const max = parseFloat(knob.dataset.max);
-                    // Smaller range for more musical results
-                    const range = (max - min) * 0.3;
+                    const range = (max - min) * 0.25;
                     const mid = (min + max) / 2;
                     const randomVal = mid + (Math.random() - 0.5) * range;
                     setKnobValue(knob, Math.max(min, Math.min(max, randomVal)));
                 }
             });
             
-            currentPresetName = profile.name + ' (Randomized)';
+            currentPresetName = profile.name + ' (In Tune)';
             document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
             updateADSRVisual();
             updateWaveform();
-            showNotification(`🎲 ${profile.name} - Unique Variation Created!`);
+            showNotification(`🎵 ${profile.name} - Perfectly Tuned!`);
         });
         
         // ===== SONG STARTER SYSTEM =====
