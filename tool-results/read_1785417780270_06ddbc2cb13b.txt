@@ -1,0 +1,502 @@
+  3600→                'Swing Feel': () => [85, 40, 75, 35, 88, 42, 72, 38, 82, 40, 78, 36, 86, 44, 74, 34]
+  3601→            }
+  3602→        };
+  3603→        
+  3604→        const CHORDS = {
+  3605→            // chord type: [intervals from root]
+  3606→            'major': [0, 4, 7],
+  3607→            'minor': [0, 3, 7],
+  3608→            'dim': [0, 3, 6],
+  3609→            'aug': [0, 4, 8],
+  3610→            'maj7': [0, 4, 7, 11],
+  3611→            'min7': [0, 3, 7, 10],
+  3612→            'dom7': [0, 4, 7, 10],
+  3613→            'sus2': [0, 2, 7],
+  3614→            'sus4': [0, 5, 7],
+  3615→            'power': [0, 7]
+  3616→        };
+  3617→        
+  3618→        // Melodic contour patterns
+  3619→        const CONTOURS = {
+  3620→            ascending: (pos) => pos,
+  3621→            descending: (pos) => 1 - pos,
+  3622→            arch: (pos) => pos < 0.5 ? pos * 2 : 2 - pos * 2,
+  3623→            valley: (pos) => pos < 0.5 ? 1 - pos * 2 : (pos - 0.5) * 2,
+  3624→            wave: (pos) => Math.sin(pos * Math.PI * 2) * 0.5 + 0.5,
+  3625→            random: () => Math.random()
+  3626→        };
+  3627→        
+  3628→        // Intelligent melody generator
+  3629→        class MelodyGenerator {
+  3630→            constructor(scale, rootNote, genreConfig) {
+  3631→                this.scale = scale;
+  3632→                this.root = rootNote; // MIDI note number
+  3633→                this.config = genreConfig;
+  3634→                this.scaleNotes = SCALES[scale].map(i => root + i);
+  3635→                this.currentStep = 0;
+  3636→                this.pattern = [];
+  3637→                this.chordProgression = [];
+  3638→            }
+  3639→            
+  3640→            getScaleDegree(degree) {
+  3641→                const octaveOffset = Math.floor(degree / this.scaleNotes.length);
+  3642→                const idx = ((degree % this.scaleNotes.length) + this.scaleNotes.length) % this.scaleNotes.length;
+  3643→                return this.scaleNotes[idx] + (octaveOffset * 12);
+  3644→            }
+  3645→            
+  3646→            getChordTones(rootDegree, chordType = 'major') {
+  3647→                const root = this.getScaleDegree(rootDegree);
+  3648→                return CHORDS[chordType].map(interval => root + interval);
+  3649→            }
+  3650→            
+  3651→            isChordTone(note, chordRoot, chordType = 'major') {
+  3652→                const tones = this.getChordTones(chordRoot, chordType).map(t => t % 12);
+  3653→                return tones.includes(note % 12);
+  3654→            }
+  3655→            
+  3656→            isScaleTone(note) {
+  3657→                return this.scaleNotes.map(n => n % 12).includes(note % 12);
+  3658→            }
+  3659→            
+  3660→            getPassingTone(fromNote, toNote) {
+  3661→                const diff = toNote - fromNote;
+  3662→                if (Math.abs(diff) === 1 || Math.abs(diff) === 2) return null;
+  3663→                const mid = fromNote + Math.sign(diff);
+  3664→                // Prefer scale tone, accept chromatic
+  3665→                if (this.isScaleTone(mid)) return mid;
+  3666→                return fromNote + Math.sign(diff) * 2;
+  3667→            }
+  3668→            
+  3669→            getApproachTone(targetNote, fromAbove = true) {
+  3670→                const approach = targetNote + (fromAbove ? 1 : -1);
+  3671→                if (this.isScaleTone(approach)) return approach;
+  3672→                return targetNote + (fromAbove ? 2 : -2);
+  3673→            }
+  3674→            
+  3675→            generatePattern(length = 16) {
+  3676→                const pattern = [];
+  3677→                let currentPos = 0.5;
+  3678→                const contourFn = CONTOURS[this.config.contour || 'wave'];
+  3679→                const useChords = this.config.useChords || false;
+  3680→                
+  3681→                // Generate chord progression if needed
+  3682→                if (useChords && this.config.chordProgression) {
+  3683→                    this.chordProgression = this.generateChordProgression();
+  3684→                }
+  3685→                
+  3686→                for (let i = 0; i < length; i++) {
+  3687→                    currentPos = (i / length);
+  3688→                    const contourValue = typeof contourFn === 'function' ? contourFn(currentPos) : contourFn();
+  3689→                    
+  3690→                    // Determine which chord we're on (if using chords)
+  3691→                    const chordIdx = useChords ? Math.floor((i / length) * this.chordProgression.length) % this.chordProgression.length : 0;
+  3692→                    const currentChord = useChords ? this.chordProgression[chordIdx] : null;
+  3693→                    
+  3694→                    // Generate note(s) based on genre intelligence
+  3695→                    const notes = this.generateIntelligentNote(i, contourValue, currentChord, length);
+  3696→                    
+  3697→                    pattern.push({
+  3698→                        notes: notes,
+  3699→                        velocity: this.generateVelocity(i, length),
+  3700→                        duration: this.generateDuration(i, length),
+  3701→                        probability: this.config.probabilityVariation ? (85 + Math.random() * 15) : 100,
+  3702→                        step: i
+  3703→                    });
+  3704→                }
+  3705→                
+  3706→                this.pattern = pattern;
+  3707→                return pattern;
+  3708→            }
+  3709→            
+  3710→            generateIntelligentNote(stepIndex, contourValue, currentChord, totalSteps) {
+  3711→                const config = this.config;
+  3712→                const notes = [];
+  3713→                
+  3714→                // Map contour to pitch range
+  3715→                const range = (config.pitchRange || 12); // semitones
+  3716→                const basePitch = this.root + (config.octaveCenter || 4) * 12;
+  3717→                const targetPitch = basePitch + (contourValue - 0.5) * range;
+  3718→                
+  3719→                // Snap to nearest scale tone
+  3720→                const snappedPitch = this.snapToScale(targetPitch);
+  3721→                
+  3722→                if (currentChord && Math.random() < (config.chordToneWeight || 0.7)) {
+  3723→                    // Emphasize chord tones
+  3724→                    const chordTones = this.getChordTones(currentChord.degree, currentChord.type);
+  3725→                    const closestChordTone = chordTones.reduce((prev, curr) => 
+  3726→                        Math.abs(curr - snappedPitch) < Math.abs(prev - snappedPitch) ? curr : prev
+  3727→                    );
+  3728→                    notes.push(closestChordTone);
+  3729→                    
+  3730→                    // Add harmony sometimes
+  3731→                    if (config.harmony && Math.random() < config.harmonyChance || 0.15) {
+  3732→                        const third = chordTones.find(t => t === closestChordTone + 4 || t === closestChordTone + 3);
+  3733→                        const fifth = chordTones.find(t => t === closestChordTone + 7);
+  3734→                        if (fifth && Math.random() < 0.5) notes.push(fifth);
+  3735→                        else if (third) notes.push(third);
+  3736→                    }
+  3737→                } else {
+  3738→                    notes.push(snappedPitch);
+  3739→                    
+  3740→                    // Add passing/approach tones for melodic interest
+  3741→                    if (stepIndex > 0 && this.pattern.length > 0) {
+  3742→                        const prevNote = this.pattern[this.pattern.length - 1].notes[0];
+  3743→                        if (Math.random() < (config.passingToneChance || 0.2)) {
+  3744→                            const passing = this.getPassingTone(prevNote, snappedPitch);
+  3745→                            if (passing && Math.abs(passing - prevNote) <= 5) {
+  3746→                                notes[0] = passing; // Replace with passing tone
+  3747→                            }
+  3748→                        }
+  3749→                    }
+  3750→                }
+  3751→                
+  3752→                // Add octave jumps for energy (genre-dependent)
+  3753→                if (config.octaveJumps && Math.random() < (config.octaveJumpChance || 0.1)) {
+  3754→                    const octaveShift = Math.random() < 0.5 ? 12 : -12;
+  3755→                    notes[0] += octaveShift;
+  3756→                }
+  3757→                
+  3758→                // Rests for rhythmic variety
+  3759→                if (config.restChance && Math.random() < config.restChance) {
+  3760→                    return []; // Rest
+  3761→                }
+  3762→                
+  3763→                return notes.filter(n => n >= 21 && n <= 108); // Valid MIDI range
+  3764→            }
+  3765→            
+  3766→            snapToScale(pitch) {
+  3767→                const normalized = ((pitch - this.root) % 12 + 12) % 12;
+  3768→                let closest = this.scaleNotes[0];
+  3769→                let minDiff = 12;
+  3770→                
+  3771→                for (const scaleNote of this.scaleNotes) {
+  3772→                    const diff = Math.abs((scaleNote % 12) - normalized);
+  3773→                    if (diff < minDiff) {
+  3774→                        minDiff = diff;
+  3775→                        closest = scaleNote;
+  3776→                    }
+  3777→                }
+  3778→                
+  3779→                // Find correct octave
+  3780→                const octave = Math.floor((pitch - this.root) / 12);
+  3781→                return this.root + (closest - this.root % 12 + 12) % 12 + octave * 12;
+  3782→            }
+  3783→            
+  3784→            generateVelocity(step, total) {
+  3785→                const config = this.config;
+  3786→                const baseVel = config.baseVelocity || 100;
+  3787→                
+  3788→                // Accent on beats
+  3789→                const beatStrength = [1.1, 0.9, 1.05, 0.95, 1.1, 0.9, 1.05, 0.95][step % 8];
+  3790→                
+  3791→                // Crescendo/decrescendo
+  3792→                const dynamicShape = config.dynamicShape || 'flat';
+  3793→                let dynamicMultiplier = 1;
+  3794→                if (dynamicShape === 'crescendo') dynamicMultiplier = 0.7 + (step / total) * 0.5;
+  3795→                else if (dynamicShape === 'decrescendo') dynamicMultiplier = 1.2 - (step / total) * 0.5;
+  3796→                else if (dynamicShape === 'arch') dynamicMultiplier = step < total/2 ? 0.8 + (step/(total/2))*0.4 : 1.2 - ((step-total/2)/(total/2))*0.4;
+  3797→                
+  3798→                const variation = 1 + (Math.random() - 0.5) * (config.velocityVariation || 0.1);
+  3799→                
+  3800→                return Math.round(Math.min(127, Math.max(40, baseVel * beatStrength * dynamicMultiplier * variation)));
+  3801→            }
+  3802→            
+  3803→            generateDuration(step, total) {
+  3804→                const config = this.config;
+  3805→                const baseGate = config.gate || 80;
+  3806→                
+  3807→                // Shorter notes at end of phrases
+  3808→                const phraseLength = config.phraseLength || 8;
+  3809→                const positionInPhrase = step % phraseLength;
+  3810→                const isPhraseEnd = positionInPhrase === phraseLength - 1;
+  3811→                
+  3812→                if (isPhraseEnd && config.phraseEndShorten) return baseGate * 0.5;
+  3813→                
+  3814→                // Staccato/legato variation
+  3815→                if (config.staccatoChance && Math.random() < config.staccatoChance) return baseGate * 0.4;
+  3816→                if (config.legatoChance && Math.random() < config.legatoChance) return Math.min(120, baseGate * 1.2);
+  3817→                
+  3818→                return baseGate + (Math.random() - 0.5) * 20;
+  3819→            }
+  3820→            
+  3821→            generateChordProgression() {
+  3822→                const progConfig = this.config.chordProgression;
+  3823→                if (!progConfig) return [{degree: 0, type: 'major'}];
+  3824→                
+  3825→                if (typeof progConfig === 'string') {
+  3826→                    // Named progressions
+  3827→                    const progressions = {
+  3828→                        'pop': [
+  3829→                            {degree: 0, type: 'maj7'}, {degree: 3, type: 'min7'}, 
+  3830→                            {degree: 4, type: 'dom7'}, {degree: 0, type: 'maj7'}
+  3831→                        ],
+  3832→                        'jazz': [
+  3833→                            {degree: 0, type: 'maj7'}, {degree: 5, type: 'min7'},
+  3834→                            {degree: 2, type: 'min7'}, {degree: 6, type: 'dom7'},
+  3835→                            {degree: 3, type: 'maj7'}, {degree: 6, type: 'min7'},
+  3836→                            {degree: 2, type: 'dom7'}, {degree: 5, type: 'maj7'}
+  3837→                        ],
+  3838→                        'classical': [
+  3839→                            {degree: 0, type: 'major'}, {degree: 5, type: 'major'},
+  3840→                            {degree: 3, type: 'minor'}, {degree: 0, type: 'major'}
+  3841→                        ],
+  3842→                        'edm': [
+  3843→                            {degree: 0, type: 'power'}, {degree: 0, type: 'power'},
+  3844→                            {degree: 5, type: 'power'}, {degree: 3, type: 'minor'}
+  3845→                        ]
+  3846→                    };
+  3847→                    return progressions[progConfig] || progressions['pop'];
+  3848→                }
+  3849→                
+  3850→                return progConfig;
+  3851→            }
+  3852→        }
+  3853→        
+  3854→        // Genre-specific configurations with PROFESSIONAL MELODY parameters
+  3855→        const songStarters = [
+  3856→            {
+  3857→                genre: 'EDM / Festival', icon: '🎆', color: '#FF006E',
+  3858→                description: 'Euphoric festival drops with soaring leads, massive builds, and energetic arpeggios that fill the arena.',
+  3859→                soundProfile: { osc1Type:'sawtooth', unisonVoices:8, unisonDetune:18, attack:0.02, decay:0.3, sustain:75, release:0.5, filter1Cutoff:3200, filter1Resonance:30, reverbMix:30, delayTime:350, delayFeedback:40 },
+  3860→                melodyConfig: {
+  3861→                    scale: 'Minor', rootNote: 48, // C3
+  3862→                    contour: 'wave', pitchRange: 16, octaveCenter: 4,
+  3863→                    useChords: true, chordProgression: 'edm', chordToneWeight: 0.8,
+  3864→                    baseVelocity: 115, velocityVariation: 0.08,
+  3865→                    gate: 90, dynamicShape: 'crescendo',
+  3866→                    octaveJumps: true, octaveJumpChance: 0.15,
+  3867→                    restChance: 0.02, staccatoChance: 0.1,
+  3868→                    phraseLength: 8, phraseEndShorten: true,
+  3869→                    harmony: true, harmonyChance: 0.25,
+  3870→                    bpm: 128, timeSignature: '4/4'
+  3871→                }
+  3872→            },
+  3873→            {
+  3874→                genre: 'Hip Hop / Trap', icon: '🎤', color: '#8B5CF6',
+  3875→                description: 'Dark trap melodies with minor key tension, quick rhythmic patterns, and space between notes.',
+  3876→                soundProfile: { osc1Type:'sine', unisonVoices:2, unisonDetune:4, attack:0.005, decay:0.4, sustain:60, release:0.3, filter1Cutoff:2500, filter1Resonance:35, reverbMix:40, delayTime:260, delayFeedback:28, driveAmount:25 },
+  3877→                melodyConfig: {
+  3878→                    scale: 'Harmonic Minor', rootNote: 45, // A2
+  3879→                    contour: 'valley', pitchRange: 10, octaveCenter: 4,
+  3880→                    useChords: false, chordToneWeight: 0.6,
+  3881→                    baseVelocity: 105, velocityVariation: 0.15,
+  3882→                    gate: 55, dynamicShape: 'flat',
+  3883→                    octaveJumps: true, octaveJumpChance: 0.08,
+  3884→                    restChance: 0.25, staccatoChance: 0.35,
+  3885→                    phraseLength: 4, phraseEndShorten: false,
+  3886→                    harmony: false, passingToneChance: 0.3,
+  3887→                    bpm: 140, timeSignature: '4/4'
+  3888→                }
+  3889→            },
+  3890→            {
+  3891→                genre: 'Lo-Fi / Chill', icon: '☕', color: '#F59E0B',
+  3892→                description: 'Nostalgic jazz-influenced melodies with warm tones, laid-back rhythms, and gentle harmonic movement.',
+  3893→                soundProfile: { osc1Type:'triangle', unisonVoices:3, unisonDetune:6, attack:0.08, decay:0.4, sustain:70, release:1.5, filter1Cutoff:2800, filter1Resonance:12, reverbMix:50, delayTime:380, delayFeedback:32, eqHigh:-6 },
+  3894→                melodyConfig: {
+  3895→                    scale: 'Major', rootNote: 52, // E3
+  3896→                    contour: 'arch', pitchRange: 8, octaveCenter: 4,
+  3897→                    useChords: true, chordProgression: 'jazz', chordToneWeight: 0.75,
+  3898→                    baseVelocity: 85, velocityVariation: 0.2,
+  3899→                    gate: 72, dynamicShape: 'arch',
+  3900→                    octaveJumps: false,
+  3901→                    restChance: 0.15, legatoChance: 0.3,
+  3902→                    phraseLength: 8, phraseEndShorten: true,
+  3903→                    harmony: true, harmonyChance: 0.3,
+  3904→                    bpm: 85, timeSignature: '4/4'
+  3905→                }
+  3906→            },
+  3907→            {
+  3908→                genre: 'Synthwave / Retro', icon: '🌴', color: '#EC4899',
+  3909→                description: '80s-inspired nostalgic melodies with bright neon leads and driving rhythmic energy.',
+  3910→                soundProfile: { osc1Type:'sawtooth', unisonVoices:6, unisonDetune:10, attack:0.01, decay:0.25, sustain:70, release:0.4, filter1Cutoff:4000, filter1Resonance:24, reverbMix:42, delayTime:300, delayFeedback:45, chorusDepth:55, chorusRate:3 },
+  3911→                melodyConfig: {
+  3912→                    scale: 'Pentatonic Minor', rootNote: 50, // D3
+  3913→                    contour: 'ascending', pitchRange: 14, octaveCenter: 4,
+  3914→                    useChords: true, chordProgression: 'pop', chordToneWeight: 0.65,
+  3915→                    baseVelocity: 110, velocityVariation: 0.06,
+  3916→                    gate: 82, dynamicShape: 'crescendo',
+  3917→                    octaveJumps: true, octaveJumpChance: 0.2,
+  3918→                    restChance: 0.03, staccatoChance: 0.15,
+  3919→                    phraseLength: 16, phraseEndShorten: false,
+  3920→                    harmony: false,
+  3921→                    bpm: 118, timeSignature: '4/4'
+  3922→                }
+  3923→            },
+  3924→            {
+  3925→                genre: 'Ambient / Cinematic', icon: '🎬', color: '#06B6D4',
+  3926→                description: 'Evolving atmospheric textures with slow harmonic movement and emotional depth.',
+  3927→                soundProfile: { osc1Type:'sine', unisonVoices:6, unisonDetune:22, attack:2.0, decay:1.5, sustain:90, release:4.0, filter1Cutoff:1500, filter1Resonance:6, reverbMix:68, delayTime:800, delayFeedback:50, stereoWidth:170 },
+  3928→                melodyConfig: {
+  3929→                    scale: 'Dorian', rootNote: 43, // G2
+  3930→                    contour: 'wave', pitchRange: 6, octaveCenter: 3,
+  3931→                    useChords: true, chordProgression: 'classical', chordToneWeight: 0.85,
+  3932→                    baseVelocity: 75, velocityVariation: 0.25,
+  3933→                    gate: 95, dynamicShape: 'flat',
+  3934→                    octaveJumps: false,
+  3935→                    restChance: 0.1, legatoChance: 0.5,
+  3936→                    phraseLength: 16, phraseEndShorten: false,
+  3937→                    harmony: true, harmonyChance: 0.4,
+  3938→                    bpm: 68, timeSignature: '4/4'
+  3939→                }
+  3940→            },
+  3941→            {
+  3942→                genre: 'House / Tech', icon: '🏠', color: '#10B981',
+  3943→                description: 'Groovy dancefloor energy with repetitive hypnotic motifs and building momentum.',
+  3944→                soundProfile: { osc1Type:'square', unisonVoices:3, unisonDetune:5, attack:0.005, decay:0.15, sustain:65, release:0.2, filter1Cutoff:2400, filter1Resonance:28, reverbMix:22, delayTime:170, delayFeedback:25, driveAmount:15 },
+  3945→                melodyConfig: {
+  3946→                    scale: 'Mixolydian', rootNote: 47, // B2
+  3947→                    contour: 'ascending', pitchRange: 7, octaveCenter: 4,
+  3948→                    useChords: true, chordProgression: 'pop', chordToneWeight: 0.9,
+  3949→                    baseVelocity: 108, velocityVariation: 0.04,
+  3950→                    gate: 88, dynamicShape: 'crescendo',
+  3951→                    octaveJumps: false,
+  3952→                    restChance: 0.05, staccatoChance: 0.2,
+  3953→                    phraseLength: 4, phraseEndShorten: false,
+  3954→                    harmony: false,
+  3955→                    bpm: 126, timeSignature: '4/4'
+  3956→                }
+  3957→            },
+  3958→            {
+  3959→                genre: 'Dubstep / Riddim', icon: '💥', color: '#EF4444',
+  3960→                description: 'Aggressive half-time riddim patterns with wide interval jumps and heavy syncopation.',
+  3961→                soundProfile: { osc1Type:'sawtooth', unisonVoices:5, unisonDetune:28, attack:0.003, decay:0.12, sustain:55, release:0.15, filter1Cutoff:1800, filter1Resonance:58, reverbMix:15, delayTime:130, delayFeedback:18, driveAmount:55 },
+  3962→                melodyConfig: {
+  3963→                    scale: 'Phrygian', rootNote: 43, // G2 (use Blues as fallback)
+  3964→                    contour: 'random', pitchRange: 18, octaveCenter: 3,
+  3965→                    useChords: false, chordToneWeight: 0.4,
+  3966→                    baseVelocity: 120, velocityVariation: 0.12,
+  3967→                    gate: 50, dynamicShape: 'decrescendo',
+  3968→                    octaveJumps: true, octaveJumpChance: 0.35,
+  3969→                    restChance: 0.3, staccatoChance: 0.45,
+  3970→                    phraseLength: 2, phraseEndShorten: false,
+  3971→                    harmony: false, passingToneChance: 0.4,
+  3972→                    bpm: 150, timeSignature: '4/4'
+  3973→                }
+  3974→            },
+  3975→            {
+  3976→                genre: 'Jazz / Neo-Soul', icon: '🎷', color: '#F97316',
+  3977→                description: 'Sophisticated harmonies with extended chords, voice leading, and expressive phrasing.',
+  3978→                soundProfile: { osc1Type:'triangle', unisonVoices:3, unisonDetune:3, attack:0.008, decay:0.35, sustain:55, release:1.0, filter1Cutoff:5000, filter1Resonance:15, reverbMix:40, delayTime:270, delayFeedback:22, chorusDepth:35, chorusRate:2.5, eqMid:3 },
+  3979→                melodyConfig: {
+  3980→                    scale: 'Major', rootNote: 53, // F3
+  3981→                    contour: 'valley', pitchRange: 10, octaveCenter: 4,
+  3982→                    useChords: true, chordProgression: 'jazz', chordToneWeight: 0.8,
+  3983→                    baseVelocity: 88, velocityVariation: 0.22,
+  3984→                    gate: 78, dynamicShape: 'arch',
+  3985→                    octaveJumps: false,
+  3986→                    restChance: 0.12, legatoChance: 0.4,
+  3987→                    phraseLength: 8, phraseEndShorten: true,
+  3988→                    harmony: true, harmonyChance: 0.35,
+  3989→                    bpm: 95, timeSignature: '4/4'
+  3990→                }
+  3991→            },
+  3992→            {
+  3993→                genre: 'Rock / Metal', icon: '🎸', color: '#DC2626',
+  3994→                description: 'Powerful anthemic riffs with strong rhythmic drive and pentatonic intensity.',
+  3995→                soundProfile: { osc1Type:'square', unisonVoices:4, unisonDetune:8, attack:0.001, decay:0.2, sustain:68, release:0.2, filter1Cutoff:3600, filter1Resonance:38, reverbMix:18, delayTime:110, delayFeedback:15, driveAmount:70, compRatio:10, compMakeup:6 },
+  3996→                melodyConfig: {
+  3997→                    scale: 'Pentatonic Minor', rootNote: 46, // Bb2
+  3998→                    contour: 'descending', pitchRange: 14, octaveCenter: 4,
+  3999→                    useChords: true, chordProgression: 'classical', chordToneWeight: 0.7,
+  4000→                    baseVelocity: 118, velocityVariation: 0.06,
+  4001→                    gate: 85, dynamicShape: 'decrescendo',
+  4002→                    octaveJumps: true, octaveJumpChance: 0.18,
+  4003→                    restChance: 0.08, staccatoChance: 0.25,
+  4004→                    phraseLength: 4, phraseEndShorten: false,
+  4005→                    harmony: false,
+  4006→                    bpm: 135, timeSignature: '4/4'
+  4007→                }
+  4008→            },
+  4009→            {
+  4010→                genre: 'Classical / Orchestral', icon: '🎻', color: '#7C3AED',
+  4011→                description: 'Elegant orchestral melodies with proper voice leading and classical phrasing.',
+  4012→                soundProfile: { osc1Type:'sawtooth', unisonVoices:10, unisonDetune:5, attack:1.5, decay:0.5, sustain:85, release:2.8, filter1Cutoff:2800, filter1Resonance:8, reverbMix:65, delayTime:420, delayFeedback:35, stereoWidth:150, eqLow:2, eqHigh:4 },
+  4013→                melodyConfig: {
+  4014→                    scale: 'Major', rootNote: 50, // D3
+  4015→                    contour: 'arch', pitchRange: 12, octaveCenter: 4,
+  4016→                    useChords: true, chordProgression: 'classical', chordToneWeight: 0.88,
+  4017→                    baseVelocity: 92, velocityVariation: 0.18,
+  4018→                    gate: 88, dynamicShape: 'arch',
+  4019→                    octaveJumps: false,
+  4020→                    restChance: 0.08, legatoChance: 0.35,
+  4021→                    phraseLength: 8, phraseEndShorten: true,
+  4022→                    harmony: true, harmonyChance: 0.28,
+  4023→                    bpm: 78, timeSignature: '4/4'
+  4024→                }
+  4025→            },
+  4026→            {
+  4027→                genre: 'Pop / Top 40', icon: '⭐', color: '#EAB308',
+  4028→                description: 'Catchy memorable hooks with singable melodies and radio-friendly production.',
+  4029→                soundProfile: { osc1Type:'sawtooth', unisonVoices:4, unisonDetune:6, attack:0.015, decay:0.22, sustain:65, release:0.35, filter1Cutoff:4500, filter1Resonance:18, reverbMix:28, delayTime:230, delayFeedback:30, chorusDepth:30, chorusRate:2, eqHigh:4 },
+  4030→                melodyConfig: {
+  4031→                    scale: 'Major', rootNote: 52, // E3
+  4032→                    contour: 'wave', pitchRange: 9, octaveCenter: 4,
+  4033→                    useChords: true, chordProgression: 'pop', chordToneWeight: 0.82,
+  4034→                    baseVelocity: 102, velocityVariation: 0.1,
+  4035→                    gate: 82, dynamicShape: 'crescendo',
+  4036→                    octaveJumps: false,
+  4037→                    restChance: 0.05, staccatoChance: 0.1,
+  4038→                    phraseLength: 8, phraseEndShorten: true,
+  4039→                    harmony: true, harmonyChance: 0.2,
+  4040→                    bpm: 110, timeSignature: '4/4'
+  4041→                }
+  4042→            },
+  4043→            {
+  4044→                genre: 'Drill / Phonk', icon: '🔥', color: '#991B1B',
+  4045→                description: 'Dark atmospheric melodies with chromatic tension and trap-influenced rhythms.',
+  4046→                soundProfile: { osc1Type:'sine', unisonVoices:2, unisonDetune:10, attack:0.006, decay:0.5, sustain:45, release:0.8, filter1Cutoff:3000, filter1Resonance:45, reverbMix:45, delayTime:320, delayFeedback:38, driveAmount:30 },
+  4047→                melodyConfig: {
+  4048→                    scale: 'Harmonic Minor', rootNote: 44, // Ab2
+  4049→                    contour: 'valley', pitchRange: 11, octaveCenter: 4,
+  4050→                    useChords: false, chordToneWeight: 0.5,
+  4051→                    baseVelocity: 112, velocityVariation: 0.14,
+  4052→                    gate: 58, dynamicShape: 'flat',
+  4053→                    octaveJumps: true, octaveJumpChance: 0.12,
+  4054→                    restChance: 0.2, staccatoChance: 0.3,
+  4055→                    phraseLength: 4, phraseEndShorten: false,
+  4056→                    harmony: false, passingToneChance: 0.35,
+  4057→                    bpm: 145, timeSignature: '4/4'
+  4058→                }
+  4059→            }
+  4060→        ];
+  4061→        
+  4062→        // Populate genre grid
+  4063→        const genreGrid = document.getElementById('genreGrid');
+  4064→        if(genreGrid) {
+  4065→            songStarters.forEach(starter => {
+  4066→                const btn = document.createElement('button');
+  4067→                btn.className = 'genre-btn';
+  4068→                btn.style.cssText = `padding:12px 8px;background:var(--bg-section);border:1px solid ${starter.color}40;border-radius:8px;color:var(--text);cursor:pointer;text-align:center;transition:all 0.2s;font-size:10px;`;
+  4069→                btn.innerHTML = `<div style="font-size:20px;margin-bottom:4px;">${starter.icon}</div><div style="font-weight:600;">${starter.genre}</div>`;
+  4070→                btn.addEventListener('mouseenter', () => {
+  4071→                    btn.style.background = `${starter.color}20`;
+  4072→                    btn.style.borderColor = starter.color;
+  4073→                    btn.style.transform = 'translateY(-2px)';
+  4074→                    showSongStarterInfo(starter);
+  4075→                });
+  4076→                btn.addEventListener('mouseleave', () => {
+  4077→                    btn.style.background = 'var(--bg-section)';
+  4078→                    btn.style.borderColor = `${starter.color}40`;
+  4079→                    btn.style.transform = 'none';
+  4080→                });
+  4081→                btn.addEventListener('click', () => applySongStarter(starter));
+  4082→                genreGrid.appendChild(btn);
+  4083→            });
+  4084→        }
+  4085→        
+  4086→        // Pattern type selector handler
+  4087→        document.getElementById('patternTypeSelect')?.addEventListener('change', (e) => {
+  4088→            currentPatternType = e.target.value;
+  4089→        });
+  4090→        
+  4091→        // Randomize pattern button (re-generate with same genre)
+  4092→        document.getElementById('randomizePatternBtn')?.addEventListener('click', () => {
+  4093→            if(window.currentMelodyState && window.currentMelodyState.getStarter) {
+  4094→                const starter = window.currentMelodyState.getStarter();
+  4095→                applySongStarter(starter);
+  4096→            } else {
+  4097→                showNotification('🎵 Select a genre first!', true);
+  4098→            }
+  4099→        });
+
+[showing lines 3600-4099 of 4608; use offset=4100 with limit to continue reading]
