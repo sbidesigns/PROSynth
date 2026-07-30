@@ -787,6 +787,16 @@
                         <button class="btn-icon" title="Load Preset" id="loadPresetBtn" style="font-size:10px;">📂</button>
                         <button class="btn-icon" title="Save Preset" id="savePresetBtn" style="font-size:10px;">💾</button>
                         <button class="btn-icon" title="Randomize" id="randomizeBtn">🎲</button>
+                        <select class="select-styled" id="randomCategory" title="Randomize by Category" style="font-size:8px;padding:4px 6px;max-width:90px;">
+                            <option value="All">All</option>
+                            <option value="Lead">🎸 Lead</option>
+                            <option value="Bass">🎵 Bass</option>
+                            <option value="Pad">☁️ Pad</option>
+                            <option value="Keys">🎹 Keys</option>
+                            <option value="Pluck">🔔 Pluck</option>
+                            <option value="Brass">🎺 Brass</option>
+                            <option value="FX">✨ FX</option>
+                        </select>
                         <button class="btn-icon" title="Undo" id="undoBtn">↩</button>
                         <button class="btn-icon" title="A/B Compare" id="compareBtn">AB</button>
                     </div>
@@ -1709,6 +1719,17 @@
                                 <h4 style="font-size:11px;color:var(--accent);margin-bottom:8px;" id="starterTitle">Genre Name</h4>
                                 <p style="font-size:9px;color:var(--text-dim);line-height:1.5;" id="starterDescription">Description...</p>
                                 <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;" id="starterParams"></div>
+                                <div style="display:flex;gap:6px;margin-top:10px;align-items:center;">
+                                    <button class="btn-icon" id="randomizePatternBtn" title="Generate New Pattern" style="font-size:9px;padding:5px 10px;">🎲 New Pattern</button>
+                                    <select class="select-styled" id="patternTypeSelect" title="Pattern Type" style="font-size:8px;padding:3px 6px;max-width:85px;">
+                                        <option value="auto">Auto</option>
+                                        <option value="arpeggios">Arpeggio</option>
+                                        <option value="scaleRuns">Scale Run</option>
+                                        <option value="chordPatterns">Chords</option>
+                                        <option value="rhythmicPatterns">Rhythmic</option>
+                                    </select>
+                                    <button class="btn-icon" id="stopMelodyBtn" title="Stop Playback" style="font-size:9px;padding:5px 8px;background:#FF006E20;border-color:#FF006E50;">⏹ Stop</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2744,7 +2765,538 @@
                     eqLow: 4, eqMid: 3, eqHigh: 2,
                     lfo1Rate: 6.0, lfo1Depth: 18, lfo1Target: 'modulation'
                 }
-            }
+            },
+            
+            // ===== EXPANDED: MORE ICONIC LEADS =====
+            {
+                name: '🎺 Prophet-5 Lead',
+                inspiration: 'Sequential Prophet-5 / Classic Polyphonic',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 4, unisonDetune: 8,
+                    attack: 0.02, decay: 0.25, sustain: 72, release: 0.4,
+                    filterCutoff: 3200, filterReso: 22, filterEnv: 50,
+                    reverbSize: 38, reverbMix: 25,
+                    delayTime: 220, delayFeedback: 32, delayMix: 18,
+                    chorusDepth: 52, chorusRate: 1.6,
+                    driveAmount: 12, driveTone: 68,
+                    eqLow: 2, eqMid: 3, eqHigh: 5,
+                    lfo1Rate: 0.11, lfo1Depth: 10, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🌟 Jupiter-8 Brassy',
+                inspiration: 'Roland Jupiter-8 / Brass Lead',
+                category: 'Lead',
+                params: {
+                    oscType: 'square', oscPitch: 0, oscDetune: 0,
+                    unison: 2, unisonDetune: 5,
+                    attack: 0.04, decay: 0.18, sustain: 78, release: 0.35,
+                    filterCutoff: 2800, filterReso: 18, filterEnv: 42,
+                    reverbSize: 42, reverbMix: 28,
+                    delayTime: 180, delayFeedback: 28, delayMix: 15,
+                    chorusDepth: 65, chorusRate: 2.0,
+                    driveAmount: 20, driveTone: 62,
+                    eqLow: 4, eqMid: 2, eqHigh: 6,
+                    lfo1Rate: 0.09, lfo1Depth: 14, lfo1Target: 'volume'
+                }
+            },
+            {
+                name: '💫 OB-Xa Soft Lead',
+                inspiration: 'Oberheim OB-Xa / Soft Analog',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 6,
+                    attack: 0.06, decay: 0.3, sustain: 75, release: 0.5,
+                    filterCutoff: 2400, filterReso: 15, filterEnv: 38,
+                    reverbSize: 48, reverbMix: 32,
+                    delayTime: 300, delayFeedback: 25, delayMix: 20,
+                    chorusDepth: 58, chorusRate: 1.4,
+                    eqLow: 1, eqMid: 4, eqHigh: 3,
+                    lfo1Rate: 0.07, lfo1Depth: 8, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🔮 Virus TI Evolving',
+                inspiration: 'Access Virus TI / Modulating Lead',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 6, unisonDetune: 16,
+                    attack: 0.015, decay: 0.4, sustain: 80, release: 0.6,
+                    filterCutoff: 3600, filterReso: 32, filterEnv: 55,
+                    reverbSize: 45, reverbMix: 30,
+                    delayTime: 250, delayFeedback: 40, delayMix: 25,
+                    chorusDepth: 48, chorusRate: 1.9,
+                    driveAmount: 28, driveTone: 58,
+                    eqLow: 3, eqMid: 4, eqHigh: 5,
+                    lfo1Rate: 0.05, lfo1Depth: 28, lfo1Target: 'cutoff',
+                    lfo2Rate: 0.13, lfo2Depth: 12, lfo2Target: 'filterEnv'
+                }
+            },
+            {
+                name: '🎤 Vocal Formant Lead',
+                inspiration: 'Arturia Pigments / Vocoder-style',
+                category: 'Lead',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 5, unisonDetune: 10,
+                    attack: 0.03, decay: 0.22, sustain: 68, release: 0.4,
+                    filterCutoff: 2600, filterReso: 48, filterEnv: 55,
+                    reverbSize: 52, reverbMix: 35,
+                    delayTime: 180, delayFeedback: 30, delayMix: 22,
+                    chorusDepth: 62, chorusRate: 2.8,
+                    eqLow: -3, eqMid: 7, eqHigh: 4,
+                    lfo1Rate: 4.5, lfo1Depth: 15, lfo1Target: 'formant'
+                }
+            },
+            
+            // ===== EXPANDED: PROFESSIONAL BASSES =====
+            {
+                name: '⚡ MiniMoog Punchy Bass',
+                inspiration: 'Minimoog Model D / Iconic Bass',
+                category: 'Bass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -24, oscDetune: 0,
+                    unison: 2, unisonDetune: 6,
+                    attack: 0.005, decay: 0.28, sustain: 68, release: 0.25,
+                    filterCutoff: 650, filterReso: 35, filterEnv: 65,
+                    reverbSize: 12, reverbMix: 8,
+                    delayTime: 80, delayFeedback: 20, delayMix: 12,
+                    driveAmount: 32, driveTone: 52,
+                    eqLow: 8, eqMid: 2, eqHigh: -2,
+                    compRatio: 8, compMakeup: 6
+                }
+            },
+            {
+                name: '🔥 MS-20 Aggressive',
+                inspiration: 'Korg MS-20 / Semi-Modular Bass',
+                category: 'Bass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 18,
+                    attack: 0.002, decay: 0.15, sustain: 55, release: 0.12,
+                    filterCutoff: 1200, filterReso: 65, filterEnv: 75,
+                    reverbSize: 8, reverbMix: 5,
+                    delayTime: 60, delayFeedback: 15, delayMix: 8,
+                    driveAmount: 48, driveTone: 42,
+                    eqLow: 6, eqMid: 0, eqHigh: -4,
+                    lfo1Rate: 0.08, lfo1Depth: 35, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🌊 Deep Submarine',
+                inspiration: 'Serum Sub Bass / Deep House',
+                category: 'Bass',
+                params: {
+                    oscType: 'sine', oscPitch: -36, oscDetune: 0,
+                    unison: 3, unisonDetune: 8,
+                    attack: 0.018, decay: 0.45, sustain: 85, release: 0.8,
+                    filterCutoff: 280, filterReso: 12, filterEnv: 25,
+                    reverbSize: 25, reverbMix: 18,
+                    delayTime: 200, delayFeedback: 35, delayMix: 22,
+                    eqLow: 10, eqMid: -2, eqHigh: -6,
+                    compRatio: 5, compMakeup: 4
+                }
+            },
+            {
+                name: '💀 Monosynth Growl',
+                inspiration: 'Sequential Pro-1 / Monophonic Bass',
+                category: 'Bass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.003, decay: 0.2, sustain: 62, release: 0.18,
+                    filterCutoff: 1500, filterReso: 42, filterEnv: 70,
+                    reverbSize: 10, reverbMix: 6,
+                    delayTime: 90, delayFeedback: 22, delayMix: 14,
+                    driveAmount: 45, driveTone: 48,
+                    eqLow: 7, eqMid: 3, eqHigh: 0,
+                    lfo1Rate: 0.15, lfo1Depth: 28, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🎸 Funky Slap Bass',
+                inspiration: 'Bass Guitar Emulation / Funk Style',
+                category: 'Bass',
+                params: {
+                    oscType: 'triangle', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 4,
+                    attack: 0.001, decay: 0.12, sustain: 45, release: 0.08,
+                    filterCutoff: 2200, filterReso: 28, filterEnv: 55,
+                    reverbSize: 15, reverbMix: 10,
+                    delayTime: 50, delayFeedback: 12, delayMix: 6,
+                    driveAmount: 25, driveTone: 65,
+                    eqLow: 5, eqMid: 4, eqHigh: 3,
+                    lfo1Rate: 6.5, lfo1Depth: 8, lfo1Target: 'filterEnv'
+                }
+            },
+            
+            // ===== EXPANDED: CINEMATIC PADS & STRINGS =====
+            {
+                name: '🎻 Prophet Strings',
+                inspiration: 'Prophet-5 String Ensemble / Vintage Pad',
+                category: 'Pad',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 8, unisonDetune: 10,
+                    attack: 1.2, decay: 0.5, sustain: 88, release: 2.2,
+                    filterCutoff: 2400, filterReso: 12, filterEnv: 22,
+                    reverbSize: 82, reverbMix: 58,
+                    delayTime: 380, delayFeedback: 32, delayMix: 25,
+                    chorusDepth: 70, chorusRate: 1.8,
+                    stereoWidth: 145,
+                    eqLow: 2, eqMid: 3, eqHigh: 5,
+                    lfo1Rate: 0.05, lfo1Depth: 6, lfo1Target: 'volume'
+                }
+            },
+            {
+                name: '☁️ Juno-60 Warm Pad',
+                inspiration: 'Roland Juno-60 / Chorus Pad',
+                category: 'Pad',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 4, unisonDetune: 8,
+                    attack: 0.6, decay: 0.3, sustain: 82, release: 1.5,
+                    filterCutoff: 2000, filterReso: 15, filterEnv: 28,
+                    reverbSize: 58, reverbMix: 42,
+                    delayTime: 280, delayFeedback: 28, delayMix: 18,
+                    chorusDepth: 75, chorusRate: 0.6, // Famous Juno chorus!
+                    eqLow: -1, eqMid: 4, eqHigh: 6,
+                    lfo1Rate: 0.08, lfo1Depth: 8, lfo1Target: 'cutoff'
+                }
+            },
+            {
+                name: '🌈 Omnisphere Ethereal',
+                inspiration: 'Spectrasonics Omnisphere / Ambient Texture',
+                category: 'Pad',
+                params: {
+                    oscType: 'sine', oscPitch: 0, oscDetune: 0,
+                    unison: 10, unisonDetune: 28,
+                    attack: 3.5, decay: 1.8, sustain: 92, release: 5.5,
+                    filterCutoff: 1200, filterReso: 4, filterEnv: 12,
+                    reverbSize: 95, reverbMix: 78,
+                    delayTime: 1100, delayFeedback: 62, delayMix: 48,
+                    stereoWidth: 190,
+                    eqLow: 0, eqMid: 2, eqHigh: 6,
+                    lfo1Rate: 0.03, lfo1Depth: 10, lfo1Target: 'cutoff',
+                    lfo2Rate: 0.06, lfo2Depth: 6, lfo2Target: 'pan'
+                }
+            },
+            {
+                name: '✝️ Choir Aahs',
+                inspiration: 'Emulator II Choir / Vocal Pad',
+                category: 'Pad',
+                params: {
+                    oscType: 'triangle', oscPitch: 0, oscDetune: 0,
+                    unison: 6, unisonDetune: 12,
+                    attack: 0.8, decay: 0.4, sustain: 78, release: 1.8,
+                    filterCutoff: 3200, filterReso: 18, filterEnv: 32,
+                    reverbSize: 88, reverbMix: 65,
+                    delayTime: 450, delayFeedback: 35, delayMix: 28,
+                    chorusDepth: 68, chorusRate: 2.2,
+                    eqLow: -2, eqMid: 5, eqHigh: 4,
+                    lfo1Rate: 3.2, lfo1Depth: 8, lfo1Target: 'volume',
+                    lfo2Rate: 0.12, lfo2Depth: 5, lfo1Target: 'formant'
+                }
+            },
+            {
+                name: '🎹 DX7 Electric Piano',
+                inspiration: 'Yamaha DX7 E.Piano 1 / FM Keys',
+                category: 'Keys',
+                params: {
+                    oscType: 'triangle', oscPitch: 0, oscDetune: 0,
+                    unison: 3, unisonDetune: 4,
+                    attack: 0.002, decay: 0.45, sustain: 42, release: 1.0,
+                    filterCutoff: 5500, filterReso: 18, filterEnv: 35,
+                    reverbSize: 45, reverbMix: 35,
+                    delayTime: 250, delayFeedback: 28, delayMix: 20,
+                    chorusDepth: 48, chorusRate: 3.0,
+                    driveAmount: 15, driveTone: 72,
+                    eqLow: 1, eqMid: 5, eqHigh: 4,
+                    lfo1Rate: 4.8, lfo1Depth: 5, lfo1Target: 'volume',
+                    lfo2Rate: 0.2, lfo2Depth: 6, lfo2Target: 'pitch'
+                }
+            },
+            {
+                name: '🎹 Rhodes Mark I',
+                inspiration: 'Fender Rhodes / Tine Piano',
+                category: 'Keys',
+                params: {
+                    oscType: 'triangle', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 3,
+                    attack: 0.003, decay: 0.5, sustain: 38, release: 1.2,
+                    filterCutoff: 4800, filterReso: 22, filterEnv: 40,
+                    reverbSize: 52, reverbMix: 40,
+                    delayTime: 320, delayFeedback: 30, delayMix: 22,
+                    chorusDepth: 55, chorusRate: 2.5,
+                    driveAmount: 18, driveTone: 68,
+                    eqLow: 3, eqMid: 4, eqHigh: 5,
+                    lfo1Rate: 5.5, lfo1Depth: 6, lfo1Target: 'volume'
+                }
+            },
+            {
+                name: '🎹 Wurlitzer EP200',
+                inspiration: 'Wurlitzer 200A / Reedy EP',
+                category: 'Keys',
+                params: {
+                    oscType: 'sawtooth', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 5,
+                    attack: 0.002, decay: 0.4, sustain: 35, release: 0.8,
+                    filterCutoff: 4200, filterReso: 26, filterEnv: 45,
+                    reverbSize: 40, reverbMix: 30,
+                    delayTime: 220, delayFeedback: 25, delayMix: 18,
+                    driveAmount: 22, driveTone: 58,
+                    eqLow: 2, eqMid: 6, eqHigh: 3,
+                    lfo1Rate: 6.2, lfo1Depth: 4, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🎹 B3 Organ Swell',
+                inspiration: 'Hammond B3 / Drawbar Organ',
+                category: 'Keys',
+                params: {
+                    oscType: 'square', oscPitch: 0, oscDetune: 0,
+                    unison: 3, unisonDetune: 3,
+                    attack: 0.008, decay: 0.1, sustain: 95, release: 0.15,
+                    filterCutoff: 6000, filterReso: 8, filterEnv: 10,
+                    reverbSize: 35, reverbMix: 25,
+                    delayTime: 100, delayFeedback: 18, delayMix: 12,
+                    chorusDepth: 78, chorusRate: 5.5, // Leslie speed!
+                    eqLow: 4, eqMid: 2, eqHigh: 3,
+                    driveAmount: 28, driveTone: 55,
+                    lfo1Rate: 7.0, lfo1Depth: 20, lfo1Target: 'modulation'
+                }
+            },
+            {
+                name: '🎹 Clavinet D6',
+                inspiration: 'Hohner Clavinet / Funk Keys',
+                category: 'Keys',
+                params: {
+                    oscType: 'square', oscPitch: 0, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.001, decay: 0.15, sustain: 25, release: 0.1,
+                    filterCutoff: 3500, filterReso: 35, filterEnv: 55,
+                    reverbSize: 18, reverbMix: 12,
+                    delayTime: 80, delayFeedback: 20, delayMix: 14,
+                    driveAmount: 35, driveTone: 48,
+                    eqLow: 5, eqMid: 3, eqHigh: 2,
+                    compRatio: 6, compMakeup: 4
+                }
+            },
+            
+            // ===== PLUCKS & PERCUSSIVE SOUNDS =====
+            {
+                name: '🎵 Tropical House Pluck',
+                inspiration: 'Serum Pluck / Tropical House',
+                category: 'Pluck',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 4, unisonDetune: 8,
+                    attack: 0.001, decay: 0.1, sustain: 15, release: 0.15,
+                    filterCutoff: 4500, filterReso: 38, filterEnv: 68,
+                    reverbSize: 45, reverbMix: 32,
+                    delayTime: 170, delayFeedback: 35, delayMix: 28,
+                    eqLow: 3, eqMid: 2, eqHigh: 6,
+                    lfo1Rate: 0.1, lfo1Depth: 6, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🔔 FM Bell Crystal',
+                inspiration: 'DX7 Bell / FM Metallic',
+                category: 'Pluck',
+                params: {
+                    oscType: 'sine', oscPitch: 12, oscDetune: 0,
+                    unison: 2, unisonDetune: 3,
+                    attack: 0.001, decay: 1.2, sustain: 8, release: 2.0,
+                    filterCutoff: 9000, filterReso: 52, filterEnv: 12,
+                    reverbSize: 78, reverbMix: 55,
+                    delayTime: 400, delayFeedback: 28, delayMix: 18,
+                    eqLow: -6, eqMid: 2, eqHigh: 8,
+                    lfo1Rate: 3.0, lfo1Depth: 4, lfo1Target: 'pitch'
+                }
+            },
+            {
+                name: '🪕 Kalimba Thumb Piano',
+                inspiration: 'African Kalimba / Tine Percussion',
+                category: 'Pluck',
+                params: {
+                    oscType: 'triangle', oscPitch: 24, oscDetune: 0,
+                    unison: 1, unisonDetune: 0,
+                    attack: 0.0005, decay: 0.8, sustain: 5, release: 1.5,
+                    filterCutoff: 5000, filterReso: 28, filterEnv: 18,
+                    reverbSize: 65, reverbMix: 48,
+                    delayTime: 350, delayFeedback: 22, delayMix: 15,
+                    eqLow: -2, eqMid: 4, eqHigh: 6
+                }
+            },
+            {
+                name: '🥁 Steel Drum',
+                inspiration: 'Caribbean Steel Pan / Percussive Metal',
+                category: 'Pluck',
+                params: {
+                    oscType: 'sine', oscPitch: 0, oscDetune: 0,
+                    unison: 2, unisonDetune: 8,
+                    attack: 0.001, decay: 0.6, sustain: 12, release: 1.0,
+                    filterCutoff: 7500, filterReso: 45, filterEnv: 20,
+                    reverbSize: 55, reverbMix: 38,
+                    delayTime: 280, delayFeedback: 25, delayMix: 16,
+                    eqLow: -4, eqMid: 3, eqHigh: 8
+                }
+            },
+            {
+                name: '🎸 Muted Guitar Chop',
+                inspiration: 'Funk Rhythm Guitar / Chord Stab',
+                category: 'Pluck',
+                params: {
+                    oscType: 'triangle', oscPitch: -12, oscDetune: 0,
+                    unison: 2, unisonDetune: 6,
+                    attack: 0.002, decay: 0.08, sustain: 18, release: 0.06,
+                    filterCutoff: 2800, filterReso: 42, filterEnv: 62,
+                    reverbSize: 22, reverbMix: 15,
+                    delayTime: 60, delayFeedback: 18, delayMix: 10,
+                    driveAmount: 32, driveTone: 55,
+                    eqLow: 4, eqMid: 5, eqHigh: 2
+                }
+            },
+            
+            // ===== BRASS & WOODWIND EMULATIONS =====
+            {
+                name: '🎺 Section Brass',
+                inspiration: 'M1 Brass Section / Real Brass',
+                category: 'Brass',
+                params: {
+                    oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                    unison: 6, unisonDetune: 10,
+                    attack: 0.15, decay: 0.25, sustain: 82, release: 0.4,
+                    filterCutoff: 3000, filterReso: 24, filterEnv: 52,
+                    reverbSize: 48, reverbMix: 35,
+                    delayTime: 100, delayFeedback: 20, delayMix: 12,
+                    driveAmount: 28, driveTone: 62,
+                    eqLow: 5, eqMid: 4, eqHigh: 3,
+                    lfo1Rate: 0.14, lfo1Depth: 12, lfo1Target: 'volume',
+                    compRatio: 5, compMakeup: 4
+                }
+            },
+            {
+                name: '🎷 Smooth Alto Sax',
+                    inspiration: 'Saxophone Emulation / Wind Instrument',
+                    category: 'Brass',
+                    params: {
+                        oscType: 'triangle', oscPitch: 0, oscDetune: 0,
+                        unison: 2, unisonDetune: 5,
+                        attack: 0.08, decay: 0.2, sustain: 72, release: 0.3,
+                        filterCutoff: 3800, filterReso: 20, filterEnv: 40,
+                        reverbSize: 52, reverbMix: 40,
+                        delayTime: 180, delayFeedback: 25, delayMix: 18,
+                        chorusDepth: 55, chorusRate: 1.8,
+                        driveAmount: 18, driveTone: 68,
+                        eqLow: 2, eqMid: 5, eqHigh: 4,
+                        lfo1Rate: 4.8, lfo1Depth: 8, lfo1Target: 'volume',
+                        lfo2Rate: 2.2, lfo2Depth: 5, lfo2Target: 'pitch'
+                    }
+                },
+                {
+                    name: '🎻 Solo Violin',
+                    inspiration: 'String Solo / Expressive Bow',
+                    category: 'Brass',
+                    params: {
+                        oscType: 'sawtooth', oscPitch: 0, oscDetune: 0,
+                        unison: 2, unisonDetune: 4,
+                        attack: 0.12, decay: 0.15, sustain: 78, release: 0.5,
+                        filterCutoff: 3400, filterReso: 16, filterEnv: 35,
+                        reverbSize: 62, reverbMix: 45,
+                        delayTime: 200, delayFeedback: 22, delayMix: 15,
+                        eqLow: 2, eqMid: 4, eqHigh: 5,
+                        lfo1Rate: 5.5, lfo1Depth: 6, lfo1Target: 'volume',
+                        lfo2Rate: 0.18, lfo2Depth: 4, lfo2Target: 'vibrato'
+                    }
+                },
+                
+                // ===== SPECIAL EFFECTS & TEXTURES =====
+                {
+                    name: '💥 Cinematic Impact',
+                    inspiration: 'Trailers / Hit / Boom',
+                    category: 'FX',
+                    params: {
+                        oscType: 'noise', oscPitch: 0, oscDetune: 0,
+                        unison: 1, unisonDetune: 0,
+                        attack: 0.001, decay: 0.6, sustain: 0, release: 0.3,
+                        filterCutoff: 2800, filterReso: 42, filterEnv: 80,
+                        reverbSize: 65, reverbMix: 45,
+                        delayTime: 100, delayFeedback: 15, delayMix: 8,
+                        driveAmount: 55, driveTone: 38,
+                        eqLow: 8, eqMid: 2, eqHigh: -4,
+                        compRatio: 10, compMakeup: 8
+                    }
+                },
+                {
+                    name: '📈 Riser Sweep',
+                    inspiration: 'Build-up / Tension / White Noise',
+                    category: 'FX',
+                    params: {
+                        oscType: 'noise', oscPitch: 0, oscDetune: 0,
+                        unison: 2, unisonDetune: 20,
+                        attack: 2.0, decay: 0.5, sustain: 0, release: 0.1,
+                        filterCutoff: 800, filterReso: 15, filterEnv: 95,
+                        reverbSize: 40, reverbMix: 25,
+                        delayTime: 60, delayFeedback: 10, delayMix: 5,
+                        driveAmount: 35, driveTone: 45,
+                        eqLow: 4, eqMid: 0, eqHigh: 6,
+                        lfo1Rate: 0.02, lfo1Depth: 50, lfo1Target: 'cutoff'
+                    }
+                },
+                {
+                    name: '🌀 Glitchy Digital',
+                    inspiration: 'IDM / Glitch / Artifacts',
+                    category: 'FX',
+                    params: {
+                        oscType: 'square', oscPitch: 0, oscDetune: 0,
+                        unison: 3, unisonDetune: 25,
+                        attack: 0.001, decay: 0.05, sustain: 30, release: 0.08,
+                        filterCutoff: 5200, filterReso: 48, filterEnv: 72,
+                        reverbSize: 20, reverbMix: 12,
+                        delayTime: 80, delayFeedback: 65, delayMix: 45,
+                        driveAmount: 42, driveTone: 55,
+                        eqLow: -2, eqMid: 6, eqHigh: 2,
+                        lfo1Rate: 12.0, lfo1Depth: 35, lfo1Target: 'cutoff',
+                        lfo2Rate: 0.03, lfo2Depth: 50, lfo2Target: 'pitch'
+                    }
+                },
+                {
+                    name: '🌊 Sub Drop',
+                    inspiration: 'Dubstep Drop / Frequency Sweep',
+                    category: 'FX',
+                    params: {
+                        oscType: 'sine', oscPitch: -36, oscDetune: 0,
+                        unison: 2, unisonDetune: 8,
+                        attack: 0.5, decay: 1.5, sustain: 0, release: 1.0,
+                        filterCutoff: 200, filterReso: 22, filterEnv: 85,
+                        reverbSize: 35, reverbMix: 22,
+                        delayTime: 120, delayFeedback: 30, delayMix: 18,
+                        eqLow: 12, eqMid: -4, eqHigh: -8,
+                        compRatio: 6, compMakeup: 6
+                    }
+                },
+                {
+                    name: '✨ Sparkle Shimmer',
+                    inspiration: 'Ambient Texture / High-Frequency Sparkle',
+                    category: 'FX',
+                    params: {
+                        oscType: 'sine', oscPitch: 24, oscDetune: 0,
+                        unison: 4, unisonDetune: 12,
+                        attack: 0.3, decay: 0.8, sustain: 45, release: 1.5,
+                        filterCutoff: 8500, filterReso: 35, filterEnv: 18,
+                        reverbSize: 88, reverbMix: 62,
+                        delayTime: 500, delayFeedback: 42, delayMix: 35,
+                        stereoWidth: 160,
+                        eqLow: -8, eqMid: 0, eqHigh: 8,
+                        lfo1Rate: 0.1, lfo1Depth: 8, lfo1Target: 'filterEnv',
+                        lfo2Rate: 6.5, lfo2Depth: 4, lfo2Target: 'pitch'
+                    }
+                }
         ];
         
         let lastRandomProfile = null;
@@ -2754,8 +3306,23 @@
             saveToHistory();
             randomizeCount++;
             
-            // Pick a profile different from last (cycle through all)
-            let availableProfiles = PRO_SOUND_LIBRARY.filter(p => p !== lastRandomProfile);
+            // Get selected category filter
+            const categoryFilter = document.getElementById('randomCategory')?.value || 'All';
+            
+            // Filter profiles by category if not "All"
+            let filteredProfiles = categoryFilter === 'All' 
+                ? PRO_SOUND_LIBRARY 
+                : PRO_SOUND_LIBRARY.filter(p => p.category === categoryFilter);
+            
+            // Pick a profile different from last (cycle through available)
+            let availableProfiles = filteredProfiles.filter(p => p !== lastRandomProfile);
+            
+            // If we've used all in this category, reset
+            if(availableProfiles.length === 0) {
+                availableProfiles = filteredProfiles;
+                lastRandomProfile = null;
+            }
+            
             const profile = availableProfiles[Math.floor(Math.random() * availableProfiles.length)];
             lastRandomProfile = profile;
             
@@ -2844,10 +3411,10 @@
             document.getElementById('presetDisplay').textContent = currentPresetName + ' ▾';
             updateADSRVisual();
             updateWaveform();
-            showNotification(`🎧 ${profile.name}`, true); // Small notification
+            showNotification(`🎧 ${profile.name} [${profile.category}]`, true); // Small notification with category
         });
         
-        // ===== SONG STARTER SYSTEM - INTELLIGENT MELODY GENERATOR =====
+        // ===== SONG STARTER SYSTEM - PROFESSIONAL MELODY ENGINE =====
         
         // Music Theory Engine
         const SCALES = {
@@ -2861,6 +3428,97 @@
             'Blues': [0, 3, 5, 6, 7, 10],
             'Phrygian': [0, 1, 3, 5, 7, 8, 10],
             'Chromatic': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        };
+        
+        // TIME-TESTED MELODY PATTERNS - Used by professional producers worldwide
+        const MELODY_PATTERNS = {
+            // Arpeggio patterns (most common in electronic music)
+            arpeggios: {
+                'Up Arp': (deg, scale, root) => [deg, deg+2, deg+4, deg+7].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Down Arp': (deg, scale, root) => [deg+7, deg+4, deg+2, deg].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Up-Down Arp': (deg, scale, root) => [deg, deg+2, deg+4, deg+7, deg+4, deg+2].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Triad Bounce': (deg, scale, root) => [deg, deg+4, deg+2, deg+7, deg+4, deg].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Extended 7th': (deg, scale, root) => [deg, deg+2, deg+4, deg+7, deg+9, deg+11].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12).slice(0,6),
+                'Guitar Roll': (deg, scale, root) => [deg, deg, deg+4, deg, deg+7, deg, deg+4, deg].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Piano Cascade': (deg, scale, root) => [deg, deg+2, deg, deg+4, deg+2, deg+7, deg+4, deg+9].map(d => root + scale[d % scale.length] + Math.floor(d/scale.length)*12),
+                'Randomized Arp': (deg, scale, root) => {
+                    const base = [deg, deg+2, deg+4, deg+7];
+                    return base.sort(() => Math.random() - 0.5).slice(0,4).map(d => root + scale[d % scale.length]);
+                }
+            },
+            // Scale run patterns (used in solos and fills)
+            scaleRuns: {
+                'Ascending Run': (scale, root, startOctave) => {
+                    const notes = [];
+                    for(let o=0; o<2; o++) for(let i=0; i<scale.length; i++) notes.push(root + scale[i] + (startOctave+o)*12);
+                    return notes.slice(0, 16);
+                },
+                'Descending Run': (scale, root, startOctave) => {
+                    const notes = [];
+                    for(let o=1; o>=0; o--) for(let i=scale.length-1; i>=0; i--) notes.push(root + scale[i] + (startOctave+o)*12);
+                    return notes.slice(0, 16);
+                },
+                'Pentatonic Blaster': (scale, root, oct) => {
+                    const penta = [0, 2, 4, 7, 9]; // Relative positions
+                    const notes = [];
+                    for(let o=0; o<=1; o++) penta.forEach(p => notes.push(root + p + (oct+o)*12));
+                    for(let o=1; o>=0; o--) penta.reverse().forEach((p,i) => { if(o===1||i>0) notes.push(root + p + (oct+o)*12); });
+                    return notes.slice(0, 16);
+                },
+                'Thirds Intervals': (scale, root, oct) => {
+                    const notes = [];
+                    for(let i=0; i<scale.length-2; i++) {
+                        notes.push(root + scale[i] + oct*12);
+                        notes.push(root + scale[(i+2)%scale.length] + oct*12);
+                    }
+                    return notes.slice(0, 16);
+                },
+                'Scale Zigzag': (scale, root, oct) => {
+                    const allNotes = [];
+                    for(let o=0; o<2; o++) for(let i=0; i<scale.length; i++) allNotes.push(root + scale[i] + (oct+o)*12);
+                    const notes = [];
+                    let dir = 1, idx = 0;
+                    for(let i=0; i<16 && idx < allNotes.length; i++) {
+                        notes.push(allNotes[idx]);
+                        if(idx === 0) dir = 1;
+                        if(idx >= allNotes.length - 1) dir = -1;
+                        idx += dir;
+                    }
+                    return notes;
+                }
+            },
+            // Chord-based patterns (for pads and harmonic content)
+            chordPatterns: {
+                'I-V-vi-IV Progression': (root, scale) => [
+                    [root, root+scale[4]%12, root+scale[7]%12],
+                    [root+scale[7]%12, root+scale[11]%12, root+scale[14]%12],
+                    [root+scale[9]%12, root+scale[12]%12, root+scale[16]%12],
+                    [root+scale[5]%12, root+scale[9]%12, root+scale[12]%12]
+                ],
+                'Jazz ii-V-I-vi': (root, scale) => [
+                    [root+scale[2]%12, root+scale[5]%12, root+scale[9]%12],
+                    [root+scale[7]%12, root+scale[11]%12, root+scale[14]%12],
+                    [root, root+scale[4]%12, root+scale[7]%12],
+                    [root+scale[9]%12, root+scale[12]%12, root+scale[16]%12]
+                ],
+                'Power Chord Stabs': (root, scale) => [
+                    [root, root+7], [root+5, root+12], [root+7, root+14], [root, root+7]
+                ],
+                'Suspended Flow': (root, scale) => [
+                    [root, root+2, root+7], [root+5, root+7, root+12], [root+7, root+9, root+14], [root, root+2, root+7]
+                ]
+            },
+            // Rhythmic patterns (note durations as gate percentages)
+            rhythmicPatterns: {
+                'Four-on-Floor': () => [95, 30, 30, 30, 95, 30, 30, 30, 95, 30, 30, 30, 95, 30, 30, 30],
+                'Eighth Pulse': () => [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+                'Syncopated': () => [90, 20, 40, 70, 25, 85, 15, 60, 75, 20, 45, 80, 30, 55, 20, 90],
+                'Trap Hi-Hat Style': () => [60, 15, 85, 15, 50, 15, 90, 15, 65, 15, 80, 15, 45, 15, 95, 15],
+                'Bounce Groove': () => [88, 35, 22, 42, 78, 28, 18, 52, 82, 38, 25, 48, 72, 32, 20, 58],
+                'Staccato Burst': () => [45, 10, 48, 12, 52, 10, 45, 15, 48, 10, 52, 12, 45, 10, 48, 15],
+                'Legato Flow': () => [100, 100, 98, 100, 100, 98, 100, 100, 98, 100, 100, 98, 100, 100, 98, 100],
+                'Swing Feel': () => [85, 40, 75, 35, 88, 42, 72, 38, 82, 40, 78, 36, 86, 44, 74, 34]
+            }
         };
         
         const CHORDS = {
@@ -3113,7 +3771,7 @@
             }
         }
         
-        // Genre-specific configurations with INTELLIGENT MELODY parameters
+        // Genre-specific configurations with PROFESSIONAL MELODY parameters
         const songStarters = [
             {
                 genre: 'EDM / Festival', icon: '🎆', color: '#FF006E',
@@ -3345,6 +4003,27 @@
             });
         }
         
+        // Pattern type selector handler
+        document.getElementById('patternTypeSelect')?.addEventListener('change', (e) => {
+            currentPatternType = e.target.value;
+        });
+        
+        // Randomize pattern button (re-generate with same genre)
+        document.getElementById('randomizePatternBtn')?.addEventListener('click', () => {
+            if(window.currentMelodyState && window.currentMelodyState.getStarter) {
+                const starter = window.currentMelodyState.getStarter();
+                applySongStarter(starter);
+            } else {
+                showNotification('🎵 Select a genre first!', true);
+            }
+        });
+        
+        // Stop melody button
+        document.getElementById('stopMelodyBtn')?.addEventListener('click', () => {
+            stopMelodyPlayback();
+            showNotification('⏹ Playback stopped', true);
+        });
+        
         // Active melody player state
         let activeMelodyPlayer = null;
         let melodyTimeoutId = null;
@@ -3372,63 +4051,269 @@
             `;
         }
         
-        function applySongStarter(starter) {
-            // DO NOT change any instrument settings - only generate melody!
-            // saveToHistory(); // Don't even save history - this is just a melody demo
+        // Pattern randomizer state
+        let currentPatternType = 'auto'; // auto, arpeggio, scaleRun, chord, custom
+        let lastUsedPatterns = [];
+        
+        function getRandomTimeTestedPattern(scale, rootNote, config) {
+            // Pick from time-tested patterns based on genre characteristics
+            const patternTypes = Object.keys(MELODY_PATTERNS);
+            const availableTypes = patternTypes.filter(t => !lastUsedPatterns.includes(t) || lastUsedPatterns.length >= patternTypes.length);
             
-            // Generate intelligent melody ONLY
-            const generator = new MelodyGenerator(
-                starter.melodyConfig.scale,
-                starter.melodyConfig.rootNote,
-                starter.melodyConfig
-            );
+            // Weight by genre appropriateness
+            const weights = {
+                arpeggios: ['EDM', 'Festival', 'House', 'Tech', 'Synthwave', 'Trance'].some(g => config.genreName?.includes(g)) ? 0.4 : 0.2,
+                scaleRuns: ['Jazz', 'Classical', 'Rock', 'Metal', 'Neo-Soul'].some(g => config.genreName?.includes(g)) ? 0.35 : 0.15,
+                chordPatterns: ['Ambient', 'Cinematic', 'Lo-Fi', 'Chill', 'Pop'].some(g => config.genreName?.includes(g)) ? 0.3 : 0.15,
+                rhythmicPatterns: ['Hip Hop', 'Trap', 'Drill', 'Phonk', 'Dubstep', 'Riddim'].some(g => config.genreName?.includes(g)) ? 0.35 : 0.2
+            };
             
-            const pattern = generator.generatePattern(16);
+            // Select pattern type
+            let selectedType;
+            if(currentPatternType !== 'auto') {
+                selectedType = currentPatternType;
+            } else {
+                const rand = Math.random();
+                let cumulative = 0;
+                selectedType = 'arpeggios'; // default
+                for(const [type, weight] of Object.entries(weights)) {
+                    cumulative += weight;
+                    if(rand < cumulative) {
+                        selectedType = type;
+                        break;
+                    }
+                }
+            }
             
-            // Display the generated pattern in the sequencer UI
-            displayGeneratedPattern(pattern, starter);
+            // Get specific patterns of this type
+            const patterns = MELODY_PATTERNS[selectedType];
+            const patternNames = Object.keys(patterns);
+            const patternName = patternNames[Math.floor(Math.random() * patternNames.length)];
             
-            // Start playing the melody automatically
-            startMelodyPlayback(pattern, starter.melodyConfig, starter);
+            // Track used patterns for variety
+            lastUsedPatterns.push(patternName);
+            if(lastUsedPatterns.length > 6) lastUsedPatterns.shift();
             
-            showNotification(`${starter.icon} Playing: ${starter.genre}`, true);
+            return { type: selectedType, name: patternName, fn: patterns[patternName] };
         }
         
-        function displayGeneratedPattern(pattern, starter) {
+        function applySongStarter(starter) {
+            // DO NOT change any instrument settings - only generate melody!
+            
+            const mc = starter.melodyConfig;
+            const scale = SCALES[mc.scale];
+            const rootNote = mc.rootNote;
+            
+            // Get a time-tested professional pattern
+            const patternInfo = getRandomTimeTestedPattern(scale, rootNote, {...mc, genreName: starter.genre});
+            
+            // Generate the 16-step pattern using the selected algorithm
+            const pattern = generateProfessionalPattern(patternInfo, scale, rootNote, mc, starter);
+            
+            // Display the generated pattern in the sequencer UI
+            displayGeneratedPattern(pattern, starter, patternInfo.name);
+            
+            // Start playing the melody automatically with proper timing
+            startMelodyPlayback(pattern, mc, starter);
+            
+            showNotification(`${starter.icon} ${patternInfo.name} | ${starter.genre}`, true);
+        }
+        
+        function generateProfessionalPattern(patternInfo, scale, rootNote, config, starter) {
+            const pattern = [];
+            const octaveCenter = config.octaveCenter || 4;
+            const baseVelocity = config.baseVelocity || 100;
+            const velVariation = config.velocityVariation || 0.1;
+            
+            // Generate based on pattern type
+            if(patternInfo.type === 'arpeggios') {
+                // Arpeggio pattern - cycle through chord degrees
+                const chordDegrees = [0, 2, 4, 7]; // Root, 3rd, 5th, octave
+                for(let step = 0; step < 16; step++) {
+                    const degreeIndex = step % 4;
+                    const octaveOffset = Math.floor(step / 4) % 2;
+                    const degree = chordDegrees[degreeIndex] + (config.pitchRange > 12 && octaveOffset ? 12 : 0);
+                    
+                    try {
+                        const notes = patternInfo.fn(degree, scale, rootNote + (octaveCenter-4)*12);
+                        const note = notes[Math.min(degreeIndex, notes.length-1)] || rootNote;
+                        
+                        pattern.push({
+                            notes: [Math.round(note)],
+                            velocity: Math.round(baseVelocity * (1 + (Math.random()-0.5) * velVariation)),
+                            duration: config.gate || 85,
+                            probability: 100,
+                            step: step
+                        });
+                    } catch(e) {
+                        pattern.push({
+                            notes: [rootNote + scale[degree % scale.length]],
+                            velocity: baseVelocity,
+                            duration: config.gate || 85,
+                            probability: 100,
+                            step: step
+                        });
+                    }
+                }
+            } else if(patternInfo.type === 'scaleRuns') {
+                // Scale run pattern
+                try {
+                    const notes = patternInfo.fn(scale, rootNote, octaveCenter);
+                    for(let step = 0; step < 16; step++) {
+                        const note = notes[step % notes.length];
+                        pattern.push({
+                            notes: [typeof note === 'number' ? Math.round(note) : rootNote],
+                            velocity: Math.round(baseVelocity * (1 + (Math.random()-0.5) * velVariation)),
+                            duration: config.gate || 80,
+                            probability: 100,
+                            step: step
+                        });
+                    }
+                } catch(e) {
+                    // Fallback to simple ascending
+                    for(let step = 0; step < 16; step++) {
+                        const degree = step % scale.length;
+                        const octave = Math.floor(step / scale.length);
+                        pattern.push({
+                            notes: [rootNote + scale[degree] + octave*12],
+                            velocity: baseVelocity,
+                            duration: config.gate || 80,
+                            probability: 100,
+                            step: step
+                        });
+                    }
+                }
+            } else if(patternInfo.type === 'chordPatterns') {
+                // Chord pattern - play chords on each beat
+                try {
+                    const chords = patternInfo.fn(rootNote, scale);
+                    for(let step = 0; step < 16; step++) {
+                        const chordIdx = Math.floor(step / 4) % chords.length;
+                        const chord = chords[chordIdx];
+                        pattern.push({
+                            notes: chord.map(n => typeof n === 'number' ? Math.round(rootNote + n) : rootNote).filter(n => n >= 21 && n <= 108),
+                            velocity: Math.round(baseVelocity * (step % 4 === 0 ? 1.1 : 0.95)),
+                            duration: config.gate || 90,
+                            probability: 100,
+                            step: step
+                        });
+                    }
+                } catch(e) {
+                    // Fallback to simple triads
+                    for(let step = 0; step < 16; step++) {
+                        pattern.push({
+                            notes: [rootNote, rootNote + 4, rootNote + 7],
+                            velocity: baseVelocity * 0.7,
+                            duration: config.gate || 90,
+                            probability: 100,
+                            step: step
+                        });
+                    }
+                }
+            } else if(patternInfo.type === 'rhythmicPatterns') {
+                // Rhythmic pattern with melodic contour
+                const rhythmGates = patternInfo.fn();
+                const contourFn = CONTOURS[config.contour || 'wave'];
+                
+                for(let step = 0; step < 16; step++) {
+                    const pos = step / 16;
+                    const contourValue = typeof contourFn === 'function' ? contourFn(pos) : contourFn();
+                    const range = config.pitchRange || 12;
+                    const targetPitch = rootNote + (octaveCenter - 4) * 12 + (contourValue - 0.5) * range;
+                    
+                    // Snap to scale
+                    const normalized = ((targetPitch - rootNote) % 12 + 12) % 12;
+                    let closest = scale[0];
+                    let minDiff = 12;
+                    for(const s of scale) {
+                        const diff = Math.abs(s - normalized);
+                        if(diff < minDiff) { minDiff = diff; closest = s; }
+                    }
+                    const snappedPitch = rootNote + closest + Math.round((targetPitch - rootNote - closest) / 12) * 12;
+                    
+                    // Apply rest chance
+                    const isRest = config.restChance && Math.random() < config.restChance;
+                    const gate = rhythmGates[step % rhythmGates.length];
+                    
+                    pattern.push({
+                        notes: isRest || gate < 15 ? [] : [Math.round(snappedPitch)],
+                        velocity: Math.round(baseVelocity * (gate / 100) * (1 + (Math.random()-0.5) * velVariation)),
+                        duration: gate,
+                        probability: 100,
+                        step: step
+                    });
+                }
+            }
+            
+            return pattern;
+        }
+        
+        function displayGeneratedPattern(pattern, starter, patternName) {
             const seqContainer = document.getElementById('stepSequencer');
             if(!seqContainer) return;
             
             // Clear existing steps
             seqContainer.innerHTML = '';
             
+            // Add pattern name label if provided
+            if(patternName) {
+                const label = document.createElement('div');
+                label.style.cssText = `grid-column: span 16; font-size:9px;color:${starter.color};margin-bottom:6px;text-align:center;font-weight:600;`;
+                label.textContent = `🎼 Pattern: ${patternName}`;
+                seqContainer.appendChild(label);
+            }
+            
             // Create visual representation of the melody
             pattern.forEach((step, i) => {
                 const stepEl = document.createElement('div');
                 stepEl.className = 'step';
+                
+                // Height based on pitch (higher = taller)
+                const hasNotes = step.notes.length > 0;
+                const baseHeight = 44;
+                const heightVar = hasNotes ? Math.min(20, Math.max(-10, (step.notes[0] || 60) - 60)) : 0;
+                
                 stepEl.style.cssText = `
-                    width: 32px; height: 50px;
-                    background: ${step.notes.length > 0 ? starter.color + '40' : 'var(--bg-section)'};
-                    border: 2px solid ${step.notes.length > 0 ? starter.color : 'var(--border)'};
+                    width: 34px; height: ${baseHeight + heightVar}px;
+                    background: ${hasNotes ? starter.color + '45' : 'var(--bg-section)'};
+                    border: 2px solid ${hasNotes ? starter.color + '80' : 'var(--border)'};
                     border-radius: 6px;
                     display: flex; flex-direction: column;
                     align-items: center; justify-content: center;
                     font-size: 8px; cursor: pointer;
-                    transition: all 0.15s;
+                    transition: all 0.12s ease;
+                    opacity: ${hasNotes ? 1 : 0.5};
                 `;
                 
-                if(step.notes.length > 0) {
-                    const noteNames = step.notes.map(midiToNoteName).join('/');
-                    stepEl.innerHTML = `<div style="color:${starter.color};font-weight:600;">${noteNames}</div><div style="color:var(--text-dim);">${step.velocity}</div>`;
+                if(hasNotes) {
+                    const noteNames = step.notes.map(midiToNoteName).join(step.notes.length > 1 ? '+' : '');
+                    const velColor = step.velocity > 110 ? '#FF6B6B' : step.velocity > 90 ? '#FFE66D' : 'var(--text-dim)';
+                    stepEl.innerHTML = `<div style="color:${starter.color};font-weight:700;font-size:8px;">${noteNames}</div><div style="color:${velColor};font-size:7px;">${step.velocity}</div>`;
                     stepEl.dataset.midiNotes = step.notes.join(',');
                     stepEl.dataset.velocity = step.velocity;
                 } else {
-                    stepEl.innerHTML = `<div style="color:var(--text-dim);">-</div>`;
+                    stepEl.innerHTML = `<div style="color:var(--text-dim);font-size:10px;">·</div>`;
                     stepEl.dataset.rest = 'true';
                 }
                 
                 stepEl.dataset.step = i;
                 seqContainer.appendChild(stepEl);
             });
+            
+            // Update info panel with pattern details
+            const paramsEl = document.getElementById('starterParams');
+            if(paramsEl && patternName) {
+                const existingPatternTag = paramsEl.querySelector('[data-pattern-tag]');
+                if(!existingPatternTag) {
+                    const tag = document.createElement('span');
+                    tag.dataset.patternTag = 'true';
+                    tag.style.cssText = `background:linear-gradient(90deg,${starter.color},${starter.color}80);color:#fff;padding:3px 10px;border-radius:12px;font-size:8px;font-weight:700;text-transform:uppercase;`;
+                    tag.textContent = `🎵 ${patternName}`;
+                    paramsEl.insertBefore(tag, paramsEl.firstChild);
+                } else {
+                    existingPatternTag.textContent = `🎵 ${patternName}`;
+                }
+            }
         }
         
         function midiToNoteName(midi) {
@@ -3456,41 +4341,81 @@
         
         function startPlayingLoop(pattern, config, starter) {
             const bpm = config.bpm || 120;
-            const stepDuration = (60 / bpm) / 4 * 1000; // 16th notes in ms
+            // Use proper musical timing: 16th notes at given BPM
+            const secondsPerBeat = 60 / bpm;
+            const stepDurationSeconds = secondsPerBeat / 4; // 16th note
+            const stepDurationMs = stepDurationSeconds * 1000;
             
             let currentStep = 0;
             let isPlaying = true;
+            let lastPlayTime = 0;
+            let playbackStartTime = audioCtx.currentTime;
             
-            window.currentMelodyState = { stop: () => isPlaying = false };
+            window.currentMelodyState = { 
+                stop: () => { isPlaying = false; },
+                getIsPlaying: () => isPlaying,
+                getCurrentStep: () => currentStep,
+                getBpm: () => bpm
+            };
             
-            function playStep() {
-                if(!isPlaying) return;
+            // More precise timing using AudioContext scheduling
+            function scheduleSteps() {
+                if(!isPlaying || !audioCtx) return;
+                
+                const now = audioCtx.currentTime;
+                const elapsedTime = now - playbackStartTime;
+                const expectedStep = Math.floor(elapsedTime / stepDurationSeconds);
+                
+                // Catch up if we fell behind (prevents backlog)
+                if(expectedStep > currentStep) {
+                    currentStep = expectedStep;
+                }
                 
                 // Highlight current step in UI
                 const steps = document.querySelectorAll('#stepSequencer .step');
+                const patternStep = currentStep % pattern.length;
+                
                 steps.forEach((s, i) => {
-                    s.style.transform = i === currentStep ? 'scale(1.15)' : 'scale(1)';
-                    s.style.boxShadow = i === currentStep ? `0 0 12px ${starter.color}` : 'none';
-                    s.style.borderColor = i === currentStep ? starter.color : (s.dataset.rest ? 'var(--border)' : starter.color + '60');
+                    const isActive = i === patternStep;
+                    s.style.transform = isActive ? 'scale(1.18) translateY(-2px)' : 'scale(1)';
+                    s.style.boxShadow = isActive ? `0 0 15px ${starter.color}, 0 0 30px ${starter.color}40` : 'none';
+                    s.style.borderColor = isActive ? starter.color : (s.dataset.rest ? 'var(--border)' : starter.color + '50');
+                    s.style.background = isActive ? starter.color + '60' : (s.dataset.rest ? 'var(--bg-section)' : starter.color + '30');
+                    s.style.zIndex = isActive ? '10' : '1';
                 });
                 
-                const step = pattern[currentStep];
-                
-                // Play the notes using YOUR current instrument settings
-                if(step.notes.length > 0 && (!step.probability || Math.random() * 100 < step.probability)) {
+                // Play the current step's notes
+                const step = pattern[patternStep];
+                if(step && step.notes.length > 0 && (!step.probability || Math.random() * 100 < step.probability)) {
+                    // Calculate precise duration based on gate
+                    const noteDurationMs = (step.duration || 80) / 100 * stepDurationMs;
                     step.notes.forEach(midiNote => {
-                        playMidiNote(midiNote, step.velocity, step.duration / 100 * stepDuration);
+                        playMidiNote(midiNote, step.velocity, noteDurationMs);
                     });
                 }
                 
-                currentStep = (currentStep + 1) % pattern.length;
+                currentStep++;
                 
-                // Schedule next step
-                melodyTimeoutId = setTimeout(playStep, stepDuration);
+                // Schedule next step using setTimeout (with slight lookahead)
+                if(isPlaying) {
+                    const nextStepDelay = Math.max(1, stepDurationMs - 5); // Small buffer for accuracy
+                    melodyTimeoutId = setTimeout(scheduleSteps, nextStepDelay);
+                }
             }
             
-            activeMelodyPlayer = { stop: () => { isPlaying = false; clearTimeout(melodyTimeoutId); } };
-            playStep();
+            activeMelodyPlayer = { 
+                stop: () => { 
+                    isPlaying = false; 
+                    if(melodyTimeoutId) clearTimeout(melodyTimeoutId); 
+                },
+                getPattern: () => pattern,
+                getConfig: () => config,
+                getStarter: () => starter
+            };
+            
+            // Start the loop
+            playbackStartTime = audioCtx.currentTime;
+            scheduleSteps();
         }
         
         function playMidiNote(midiNote, velocity, durationMs) {
