@@ -35,6 +35,7 @@
         renderPresetList(ALL_INDUSTRY_PRESETS);
         setupPatchTools();
         setupMiniVisualizers();
+        setupMainVisualizer();  // Initialize the main preview visualizer
 
         // Show standard view by default
         showStandardView();
@@ -592,6 +593,286 @@
             }
             
             drawMiniSpectrum();
+        }
+    }
+
+    // ===== MAIN VISUALIZER (Large Preview Area) =====
+    let mainVizMode = 'waveform';
+    let mainVizAnimationId = null;
+    let mainVizCanvas = null;
+    let mainVizCtx = null;
+
+    function setupMainVisualizer() {
+        mainVizCanvas = document.getElementById('mainVisualizerCanvas');
+        if (!mainVizCanvas) return;
+        
+        mainVizCtx = mainVizCanvas.getContext('2d');
+        
+        // Setup mode buttons
+        document.querySelectorAll('.viz-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.viz-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mainVizMode = btn.dataset.mode;
+                console.log('🎨 Visualizer mode:', mainVizMode);
+            });
+        });
+
+        // Start animation
+        drawMainVisualizer();
+        
+        // Handle resize
+        const resizeObserver = new ResizeObserver(() => {
+            // Canvas will auto-resize on next frame
+        });
+        resizeObserver.observe(mainVizCanvas.parentElement);
+    }
+
+    function drawMainVisualizer() {
+        if (!mainVizCanvas || !mainVizCtx) return;
+
+        const w = mainVizCanvas.width = mainVizCanvas.offsetWidth * 2;
+        const h = mainVizCanvas.height = mainVizCanvas.offsetHeight * 2;
+        
+        // Clear with background
+        mainVizCtx.fillStyle = '#12121c';
+        mainVizCtx.fillRect(0, 0, w, h);
+
+        // Draw grid lines
+        mainVizCtx.strokeStyle = 'rgba(42, 42, 61, 0.5)';
+        mainVizCtx.lineWidth = 1;
+        
+        // Horizontal center line
+        mainVizCtx.beginPath();
+        mainVizCtx.moveTo(0, h / 2);
+        mainVizCtx.lineTo(w, h / 2);
+        mainVizCtx.stroke();
+        
+        // Subtle grid
+        for (let i = 1; i < 4; i++) {
+            mainVizCtx.globalAlpha = 0.3;
+            mainVizCtx.beginPath();
+            mainVizCtx.moveTo(0, (h / 4) * i);
+            mainVizCtx.lineTo(w, (h / 4) * i);
+            mainVizCtx.stroke();
+        }
+        mainVizCtx.globalAlpha = 1;
+
+        const time = Date.now() / 1000;
+
+        switch (mainVizMode) {
+            case 'waveform':
+                drawWaveformMode(w, h, time);
+                break;
+            case 'spectrum':
+                drawSpectrumMode(w, h, time);
+                break;
+            case 'circular':
+                drawCircularMode(w, h, time);
+                break;
+        }
+
+        mainVizAnimationId = requestAnimationFrame(drawMainVisualizer);
+    }
+
+    function drawWaveformMode(w, h, time) {
+        // Main waveform glow
+        mainVizCtx.shadowBlur = 20;
+        mainVizCtx.shadowColor = '#00D4FF';
+        mainVizCtx.strokeStyle = '#00D4FF';
+        mainVizCtx.lineWidth = 2.5;
+        mainVizCtx.beginPath();
+
+        for (let x = 0; x < w; x++) {
+            const normalizedX = x / w;
+            // Complex waveform with multiple frequencies
+            const y = h / 2 + 
+                Math.sin(normalizedX * 12 + time * 4) * (h * 0.28) +
+                Math.sin(normalizedX * 25 + time * 7) * (h * 0.12) +
+                Math.sin(normalizedX * 5 + time * 1.5) * (h * 0.18) +
+                Math.sin(normalizedX * 40 + time * 10) * (h * 0.05);
+            
+            if (x === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        mainVizCtx.stroke();
+
+        // Secondary waveform (slightly offset, different color)
+        mainVizCtx.shadowBlur = 15;
+        mainVizCtx.shadowColor = '#8B5CF6';
+        mainVizCtx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
+        mainVizCtx.lineWidth = 1.5;
+        mainVizCtx.beginPath();
+
+        for (let x = 0; x < w; x++) {
+            const normalizedX = x / w;
+            const y = h / 2 + 
+                Math.sin(normalizedX * 15 + time * 5 + 1) * (h * 0.22) +
+                Math.sin(normalizedX * 30 + time * 8) * (h * 0.08);
+            
+            if (x === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        mainVizCtx.stroke();
+
+        mainVizCtx.shadowBlur = 0;
+    }
+
+    function drawSpectrumMode(w, h, time) {
+        const barCount = 64;
+        const barWidth = (w / barCount) - 3;
+        const gap = 3;
+
+        for (let i = 0; i < barCount; i++) {
+            // Simulated frequency data with animation
+            const freq = i / barCount;
+            const baseHeight = Math.pow(1 - freq, 0.5); // Bass boost
+            
+            // Multiple oscillating components
+            let height = baseHeight * 0.4 + 
+                Math.sin(time * 3 + i * 0.3) * 0.15 +
+                Math.sin(time * 7 + i * 0.8) * 0.1 +
+                Math.sin(time * 1.5 + i * 0.15) * 0.2;
+            
+            // Add some randomness/sparkle
+            height += Math.sin(time * 20 + i * 5) * 0.05;
+            
+            height = Math.max(0.02, Math.min(0.95, height)) * h * 0.85;
+
+            const x = i * (barWidth + gap) + gap / 2;
+            const hue = 180 + (i / barCount) * 80; // Cyan to purple gradient
+            
+            // Bar glow
+            mainVizCtx.shadowBlur = 12;
+            mainVizCtx.shadowColor = `hsla(${hue}, 90%, 60%, 0.8)`;
+            
+            // Gradient fill for each bar
+            const gradient = mainVizCtx.createLinearGradient(x, h, x, h - height);
+            gradient.addColorStop(0, `hsla(${hue}, 90%, 55%, 0.9)`);
+            gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, 0.8)`);
+            gradient.addColorStop(1, `hsla(${hue + 20}, 95%, 75%, 0.95)`);
+            
+            mainVizCtx.fillStyle = gradient;
+            
+            // Rounded top for bars
+            const radius = barWidth / 2;
+            mainVizCtx.beginPath();
+            mainVizCtx.roundRect(x, h - height, barWidth, height, [radius, radius, 0, 0]);
+            mainVizCtx.fill();
+        }
+
+        mainVizCtx.shadowBlur = 0;
+
+        // Draw frequency labels
+        mainVizCtx.fillStyle = 'rgba(136, 136, 160, 0.6)';
+        mainVizCtx.font = `${Math.max(9, w * 0.014)}px -apple-system, sans-serif`;
+        mainVizCtx.textAlign = 'center';
+        mainVizCtx.fillText('20Hz', 20, h - 8);
+        mainVizCtx.fillText('200Hz', w * 0.2, h - 8);
+        mainVizCtx.fillText('2kHz', w * 0.5, h - 8);
+        mainVizCtx.fillText('20kHz', w - 20, h - 8);
+    }
+
+    function drawCircularMode(w, h, time) {
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const baseRadius = Math.min(w, h) * 0.32;
+
+        // Outer ring (static guide)
+        mainVizCtx.strokeStyle = 'rgba(42, 42, 61, 0.6)';
+        mainVizCtx.lineWidth = 1;
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+        mainVizCtx.stroke();
+
+        // Inner ring
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, baseRadius * 0.6, 0, Math.PI * 2);
+        mainVizCtx.stroke();
+
+        // Animated circular waveform
+        const points = 128;
+        
+        // Glow layer
+        mainVizCtx.shadowBlur = 25;
+        mainVizCtx.shadowColor = '#00D4FF';
+
+        mainVizCtx.strokeStyle = '#00D4FF';
+        mainVizCtx.lineWidth = 2.5;
+        mainVizCtx.beginPath();
+
+        for (let i = 0; i <= points; i++) {
+            const angle = (i / points) * Math.PI * 2 - Math.PI / 2;
+            
+            // Multiple wave components radiating outward
+            const wave1 = Math.sin(angle * 8 + time * 4) * (baseRadius * 0.18);
+            const wave2 = Math.sin(angle * 16 + time * 7) * (baseRadius * 0.08);
+            const wave3 = Math.sin(angle * 3 + time * 1.5) * (baseRadius * 0.12);
+            const wave4 = Math.sin(angle * 24 + time * 11) * (baseRadius * 0.04);
+            
+            const r = baseRadius + wave1 + wave2 + wave3 + wave4;
+            
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+
+            if (i === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        
+        mainVizCtx.closePath();
+        mainVizCtx.stroke();
+
+        // Secondary inner shape (purple)
+        mainVizCtx.shadowBlur = 18;
+        mainVizCtx.shadowColor = '#8B5CF6';
+        mainVizCtx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+        mainVizCtx.lineWidth = 1.5;
+        mainVizCtx.beginPath();
+
+        for (let i = 0; i <= points; i++) {
+            const angle = (i / points) * Math.PI * 2 - Math.PI / 2;
+            
+            const wave1 = Math.sin(angle * 10 + time * 5 + 2) * (baseRadius * 0.14);
+            const wave2 = Math.sin(angle * 20 + time * 8) * (baseRadius * 0.06);
+            
+            const r = baseRadius * 0.65 + wave1 + wave2;
+            
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+
+            if (i === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        
+        mainVizCtx.closePath();
+        mainVizCtx.stroke();
+
+        mainVizCtx.shadowBlur = 0;
+
+        // Center dot
+        mainVizCtx.fillStyle = '#00D4FF';
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        mainVizCtx.fill();
+
+        // Radial lines (like clock markers)
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+            const innerR = baseRadius * 0.92;
+            const outerR = baseRadius * 0.98;
+            
+            mainVizCtx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+            mainVizCtx.lineWidth = 1;
+            mainVizCtx.beginPath();
+            mainVizCtx.moveTo(
+                centerX + Math.cos(angle) * innerR,
+                centerY + Math.sin(angle) * innerR
+            );
+            mainVizCtx.lineTo(
+                centerX + Math.cos(angle) * outerR,
+                centerY + Math.sin(angle) * outerR
+            );
+            mainVizCtx.stroke();
         }
     }
 
