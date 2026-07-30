@@ -2493,6 +2493,7 @@
                                         <option value="chordPatterns">Chords</option>
                                         <option value="rhythmicPatterns">Rhythmic</option>
                                     </select>
+                                    <button class="btn-icon" id="playMelodyBtn" title="Preview Pattern" style="font-size:9px;padding:5px 8px;background:#00D4FF20;border-color:#00D4FF50;color:var(--accent);">▶ Play</button>
                                     <button class="btn-icon" id="stopMelodyBtn" title="Stop Playback" style="font-size:9px;padding:5px 8px;background:#FF006E20;border-color:#FF006E50;">⏹ Stop</button>
                                 </div>
                             </div>
@@ -2763,7 +2764,7 @@
                     Latency: <span class="status-value">5.8ms</span>
                 </div>
                 <div class="status-item">
-                    BPM: <span class="status-value" id="bpmDisplay">120</span>
+                    BPM: <input type="number" id="bpmInput" value="120" min="20" max="300" style="width:48px;background:var(--bg-panel);border:1px solid var(--border);color:var(--accent);border-radius:4px;padding:2px 4px;font-size:10px;text-align:center;" title="Test Tempo (VST uses host BPM)">
                 </div>
                 <div class="status-item">
                     MySynth PRO v2.0
@@ -4893,6 +4894,20 @@
             }
         });
         
+        // Play melody button (manual trigger - no auto-play!)
+        document.getElementById('playMelodyBtn')?.addEventListener('click', () => {
+            if(window.currentSongStarterPattern && window.currentSongStarterConfig && window.currentSongStarterData) {
+                startMelodyPlayback(
+                    window.currentSongStarterPattern, 
+                    window.currentSongStarterConfig, 
+                    window.currentSongStarterData
+                );
+                showNotification(`▶ Playing: ${window.currentSongStarterPatternInfo?.name || 'Pattern'}`, true);
+            } else {
+                showNotification('🎵 Select a genre first!', true);
+            }
+        });
+        
         // Stop melody button
         document.getElementById('stopMelodyBtn')?.addEventListener('click', () => {
             stopMelodyPlayback();
@@ -4985,13 +5000,16 @@
             // Generate the 16-step pattern using the selected algorithm
             const pattern = generateProfessionalPattern(patternInfo, scale, rootNote, mc, starter);
             
+            // Store for later playback (DO NOT auto-play!)
+            window.currentSongStarterPattern = pattern;
+            window.currentSongStarterConfig = mc;
+            window.currentSongStarterData = starter;
+            window.currentSongStarterPatternInfo = patternInfo;
+            
             // Display the generated pattern in the sequencer UI
             displayGeneratedPattern(pattern, starter, patternInfo.name);
             
-            // Start playing the melody automatically with proper timing
-            startMelodyPlayback(pattern, mc, starter);
-            
-            showNotification(`${starter.icon} ${patternInfo.name} | ${starter.genre}`, true);
+            showNotification(`${starter.icon} ${patternInfo.name} ready | Press ▶ to preview`, true);
         }
         
         function generateProfessionalPattern(patternInfo, scale, rootNote, config, starter) {
@@ -5215,7 +5233,9 @@
         }
         
         function startPlayingLoop(pattern, config, starter) {
-            const bpm = config.bpm || 120;
+            // Get BPM from test input or config (syncs to project tempo when available)
+            const testBpm = parseInt(document.getElementById('bpmInput')?.value) || 120;
+            const bpm = testBpm;
             // Use proper musical timing: 16th notes at given BPM
             const secondsPerBeat = 60 / bpm;
             const stepDurationSeconds = secondsPerBeat / 4; // 16th note
@@ -6055,7 +6075,9 @@
             
             const calculateInterval = () => {
                 if(!arpSyncCheckbox?.checked) return 100;
-                const bpm = 120;
+                // Use test BPM input (in real VST, this would come from host transport)
+                const testBpm = parseInt(document.getElementById('bpmInput')?.value) || 120;
+                const bpm = testBpm;
                 const division = parseInt(arpDivisionSelect?.value || 4);
                 const beatDuration = 60000 / bpm;
                 return beatDuration / division;
