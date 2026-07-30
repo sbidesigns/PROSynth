@@ -80,43 +80,85 @@
     function showStandardView() {
         currentView = 'standard';
         
+        console.log('📱 Showing Standard View...');
+        
         // Add full-screen class to body
         document.body.classList.add('has-standard-view');
         
-        // Hide advanced view (original plugin window)
+        // HIDE advanced view (original plugin window) - FORCE IT
         if (advancedView) {
-            advancedView.style.display = 'none';
+            advancedView.style.display = 'none !important';
+            advancedView.style.visibility = 'hidden';
+            advancedView.style.opacity = '0';
+            advancedView.style.pointerEvents = 'none';
         }
         
-        // Show standard view
+        // Also hide the entire plugin-container if it exists
+        const pluginContainer = document.querySelector('.plugin-container');
+        if (pluginContainer && !pluginContainer.contains(standardView)) {
+            pluginContainer.style.display = 'none';
+        }
+        
+        // SHOW standard view - FORCE IT WITH INLINE STYLES
         standardView.classList.add('active');
+        standardView.style.display = 'flex';
+        standardView.style.visibility = 'visible';
+        standardView.style.opacity = '1';
+        standardView.style.position = 'fixed';
+        standardView.style.top = '0';
+        standardView.style.left = '0';
+        standardView.style.width = '100vw';
+        standardView.style.height = '100vh';
+        standardView.style.zIndex = '99999';
         
         // Update toggle buttons
         document.getElementById('viewToggleStandard')?.classList.add('active');
         document.getElementById('viewToggleAdvanced')?.classList.remove('active');
 
-        console.log('📱 Switched to Standard View (Full Screen)');
+        console.log('✅ Standard View should now be VISIBLE!');
+        
+        // Debug: Log what's visible
+        setTimeout(() => {
+            const rect = standardView.getBoundingClientRect();
+            console.log('📐 Standard View dimensions:', rect.width, 'x', rect.height);
+            console.log('📐 Standard View display:', getComputedStyle(standardView).display);
+        }, 100);
     }
 
     function showAdvancedView() {
         currentView = 'advanced';
         
+        console.log('⚙️ Showing Advanced View...');
+        
         // Remove full-screen class from body
         document.body.classList.remove('has-standard-view');
         
-        // Hide standard view
+        // HIDE standard view - FORCE IT
         standardView.classList.remove('active');
+        standardView.style.display = 'none';
+        standardView.style.visibility = 'hidden';
+        standardView.style.opacity = '0';
+        standardView.style.pointerEvents = 'none';
         
         // Show advanced view (original plugin window)
         if (advancedView) {
             advancedView.style.display = '';
+            advancedView.style.visibility = 'visible';
+            advancedView.style.opacity = '1';
+            advancedView.style.pointerEvents = 'auto';
+        }
+        
+        // Show plugin-container again
+        const pluginContainer = document.querySelector('.plugin-container');
+        if (pluginContainer) {
+            pluginContainer.style.display = '';
         }
         
         // Update toggle buttons
         document.getElementById('viewToggleStandard')?.classList.remove('active');
         document.getElementById('viewToggleAdvanced')?.classList.add('active');
 
-        console.log('⚙️ Switched to Advanced View');
+        console.log('✅ Advanced View should now be VISIBLE!');
     }
 
     window.toggleView = function(view) {
