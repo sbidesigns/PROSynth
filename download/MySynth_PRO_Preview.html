@@ -1945,10 +1945,10 @@
                     else if (unit === '¢') displayValue = `${Math.round(value)} ¢`;
                     else if (unit === 'st') displayValue = `${Math.round(value)} st`;
                     else if (param === 'formantVowel') displayValue = ['A','E','I','O','U'][Math.round(value)];
-                    else if (Number.isInteger(value)) displayValue = value;
+                    else if (Number.isInteger(value)) displayValue = String(value);
                     else displayValue = value.toFixed(2);
                     
-                    valueDisplay.textContent = displayValue.trim();
+                    valueDisplay.textContent = displayValue;
                 }
                 
                 updateADSRVisual();
