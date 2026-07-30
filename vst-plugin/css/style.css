@@ -100,6 +100,19 @@
             padding: 10px;
         }
 
+        /* When Standard View is active, go FULL SCREEN */
+        body.has-standard-view .plugin-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+        body.has-standard-view .plugin-window {
+            border-radius: 0;
+            height: 100vh;
+        }
+
         .plugin-window {
             background: linear-gradient(180deg, #15151f 0%, #0d0d14 100%);
             border-radius: 16px;

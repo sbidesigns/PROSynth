@@ -57,6 +57,9 @@
     function showStandardView() {
         currentView = 'standard';
         
+        // Add full-screen class to body
+        document.body.classList.add('has-standard-view');
+        
         // Hide advanced view (original plugin window)
         if (advancedView) {
             advancedView.style.display = 'none';
@@ -69,11 +72,14 @@
         document.getElementById('viewToggleStandard')?.classList.add('active');
         document.getElementById('viewToggleAdvanced')?.classList.remove('active');
 
-        console.log('📱 Switched to Standard View');
+        console.log('📱 Switched to Standard View (Full Screen)');
     }
 
     function showAdvancedView() {
         currentView = 'advanced';
+        
+        // Remove full-screen class from body
+        document.body.classList.remove('has-standard-view');
         
         // Hide standard view
         standardView.classList.remove('active');
