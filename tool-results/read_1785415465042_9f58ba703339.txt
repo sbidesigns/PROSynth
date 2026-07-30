@@ -1,0 +1,502 @@
+  1200→                            <select class="select-styled" id="filter2Type">
+  1201→                                <option value="off">Off</option>
+  1202→                                <option value="lp24">Low Pass 24dB</option>
+  1203→                                <option value="hp24">High Pass 24dB</option>
+  1204→                                <option value="bp">Band Pass</option>
+  1205→                                <option value="notch">Notch</option>
+  1206→                            </select>
+  1207→                            <div class="knob-grid" style="margin-top: 10px;">
+  1208→                                <div class="knob-item knob-lg">
+  1209→                                    <div class="knob" data-param="filter2Cutoff" data-min="20" data-max="20000" data-default="4000" data-unit="Hz" data-scale="exp">
+  1210→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1211→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1212→                                    </div>
+  1213→                                    <span class="knob-label">Cutoff</span>
+  1214→                                    <span class="knob-value">4 kHz</span>
+  1215→                                </div>
+  1216→                                <div class="knob-item">
+  1217→                                    <div class="knob" data-param="filter2Reso" data-min="0.1" data-max="20" data-default="1" data-unit="Q">
+  1218→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1219→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1220→                                    </div>
+  1221→                                    <span class="knob-label">Resonance</span>
+  1222→                                    <span class="knob-value">1.0 Q</span>
+  1223→                                </div>
+  1224→                                <div class="knob-item">
+  1225→                                    <div class="knob" data-param="filter2Env" data-min="0" data-max="100" data-default="25" data-unit="%">
+  1226→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1227→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1228→                                    </div>
+  1229→                                    <span class="knob-label">Env></span>
+  1230→                                    <span class="knob-value">25%</span>
+  1231→                                </div>
+  1232→                            </div>
+  1233→                        </div>
+  1234→
+  1235→                        <!-- Filter Routing & Formant -->
+  1236→                        <div class="section">
+  1237→                            <div class="section-header">
+  1238→                                <span class="section-title">Filter Routing</span>
+  1239→                                <span class="section-badge">SIGNAL FLOW</span>
+  1240→                            </div>
+  1241→                            <select class="select-styled" id="filterRouting">
+  1242→                                <option value="serial">Serial (1 → 2)</option>
+  1243→                                <option value="parallel">Parallel</option>
+  1244→                                <option value="split">Split (Freq)</option>
+  1245→                            </select>
+  1246→                            <div class="knob-grid" style="margin-top: 10px;">
+  1247→                                <div class="knob-item">
+  1248→                                    <div class="knob" data-param="filterMix" data-min="0" data-max="100" data-default="100" data-unit="%">
+  1249→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1250→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1251→                                    </div>
+  1252→                                    <span class="knob-label">Filter Mix</span>
+  1253→                                    <span class="knob-value">100%</span>
+  1254→                                </div>
+  1255→                                <div class="knob-item">
+  1256→                                    <div class="knob" data-param="formantVowel" data-min="0" data-max="4" data-default="0" data-unit="">
+  1257→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1258→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1259→                                    </div>
+  1260→                                    <span class="knob-label">Formant</span>
+  1261→                                    <span class="knob-value">A</span>
+  1262→                                </div>
+  1263→                            </div>
+  1264→                        </div>
+  1265→                    </div>
+  1266→                </div>
+  1267→
+  1268→                <!-- MODULATION TAB -->
+  1269→                <div class="tab-content" id="tab-modulation">
+  1270→                    <div class="section-grid">
+  1271→                        <!-- LFOs -->
+  1272→                        <div class="section">
+  1273→                            <div class="section-header">
+  1274→                                <span class="section-title">LFO 1</span>
+  1275→                                <span class="section-badge">MODULATION</span>
+  1276→                            </div>
+  1277→                            <select class="select-styled" id="lfo1Shape">
+  1278→                                <option value="sine">Sine</option>
+  1279→                                <option value="triangle">Triangle</option>
+  1280→                                <option value="square">Square</option>
+  1281→                                <option value="sawup">Saw Up</option>
+  1282→                                <option value="sawdown">Saw Down</option>
+  1283→                                <option value="random">Random S&H</option>
+  1284→                                <option value="noise">Smooth Random</option>
+  1285→                            </select>
+  1286→                            <div class="knob-grid" style="margin-top: 10px;">
+  1287→                                <div class="knob-item">
+  1288→                                    <div class="knob" data-param="lfo1Rate" data-min="0.01" data-max="30" data-default="1" data-unit="Hz">
+  1289→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1290→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1291→                                    </div>
+  1292→                                    <span class="knob-label">Rate</span>
+  1293→                                    <span class="knob-value">1 Hz</span>
+  1294→                                </div>
+  1295→                                <div class="knob-item">
+  1296→                                    <div class="knob" data-param="lfo1Depth" data-min="0" data-max="100" data-default="50" data-unit="%">
+  1297→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1298→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1299→                                    </div>
+  1300→                                    <span class="knob-label">Depth</span>
+  1301→                                    <span class="knob-value">50%</span>
+  1302→                                </div>
+  1303→                                <div class="knob-item">
+  1304→                                    <div class="knob" data-param="lfo1Phase" data-min="0" data-max="360" data-default="0" data-unit="°">
+  1305→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1306→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1307→                                    </div>
+  1308→                                    <span class="knob-label">Phase</span>
+  1309→                                    <span class="knob-value">0°</span>
+  1310→                                </div>
+  1311→                            </div>
+  1312→                        </div>
+  1313→
+  1314→                        <div class="section">
+  1315→                            <div class="section-header">
+  1316→                                <span class="section-title">LFO 2</span>
+  1317→                                <span class="section-badge">MODULATION</span>
+  1318→                            </div>
+  1319→                            <select class="select-styled" id="lfo2Shape">
+  1320→                                <option value="triangle">Triangle</option>
+  1321→                                <option value="sine">Sine</option>
+  1322→                                <option value="square">Square</option>
+  1323→                                <option value="random">Random S&H</option>
+  1324→                            </select>
+  1325→                            <div class="knob-grid" style="margin-top: 10px;">
+  1326→                                <div class="knob-item">
+  1327→                                    <div class="knob" data-param="lfo2Rate" data-min="0.01" data-max="30" data-default="2" data-unit="Hz">
+  1328→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1329→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1330→                                    </div>
+  1331→                                    <span class="knob-label">Rate</span>
+  1332→                                    <span class="knob-value">2 Hz</span>
+  1333→                                </div>
+  1334→                                <div class="knob-item">
+  1335→                                    <div class="knob" data-param="lfo2Depth" data-min="0" data-max="100" data-default="30" data-unit="%">
+  1336→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1337→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1338→                                    </div>
+  1339→                                    <span class="knob-label">Depth</span>
+  1340→                                    <span class="knob-value">30%</span>
+  1341→                                </div>
+  1342→                                </div>
+  1343→                        </div>
+  1344→
+  1345→                        <!-- Modulation Matrix -->
+  1346→                        <div class="section" style="grid-column: span 2;">
+  1347→                            <div class="section-header">
+  1348→                                <span class="section-title">Modulation Matrix</span>
+  1349→                                <span class="section-badge">8 SLOTS</span>
+  1350→                            </div>
+  1351→                            <div class="mod-matrix">
+  1352→                                <div class="mod-row">
+  1353→                                    <select class="mod-source"><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Velocity</option><option>Macro 1</option></select>
+  1354→                                    <select class="mod-dest"><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option><option>Pan</option><option>Volume</option></select>
+  1355→                                    <input type="range" class="mod-amount" value="50">
+  1356→                                </div>
+  1357→                                <div class="mod-row">
+  1358→                                    <select class="mod-source"><option>Env 1</option><option>LFO 1</option><option>LFO 2</option><option>Velocity</option><option>Macro 1</option></select>
+  1359→                                    <select class="mod-dest"><option>Filter Cutoff</option><option>Osc Pitch</option><option>Filter Reso</option><option>Pan</option><option>Volume</option></select>
+  1360→                                    <input type="range" class="mod-amount" value="75">
+  1361→                                </div>
+  1362→                                <div class="mod-row">
+  1363→                                    <select class="mod-source"><option>Velocity</option><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Macro 1</option></select>
+  1364→                                    <select class="mod-dest"><option>Volume</option><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option><option>Pan</option></select>
+  1365→                                    <input type="range" class="mod-amount" value="30">
+  1366→                                </div>
+  1367→                                <div class="mod-row">
+  1368→                                    <select class="mod-source"><option>Macro 1</option><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Velocity</option></select>
+  1369→                                    <select class="mod-dest"><option>Pan</option><option>Volume</option><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option></select>
+  1370→                                    <input type="range" class="mod-amount" value="100">
+  1371→                                </div>
+  1372→                            </div>
+  1373→                        </div>
+  1374→
+  1375→                        <!-- Macro Controls -->
+  1376→                        <div class="section" style="grid-column: span 2;">
+  1377→                            <div class="section-header">
+  1378→                                <span class="section-title">Macro Controls</span>
+  1379→                                <span class="section-badge">ASSIGNABLE</span>
+  1380→                            </div>
+  1381→                            <div class="knob-grid">
+  1382→                                <div class="knob-item">
+  1383→                                    <div class="knob" data-param="macro1" data-min="0" data-max="100" data-default="50" data-unit="">
+  1384→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1385→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1386→                                    </div>
+  1387→                                    <span class="knob-label">Macro 1</span>
+  1388→                                    <span class="knob-value">50</span>
+  1389→                                </div>
+  1390→                                <div class="knob-item">
+  1391→                                    <div class="knob" data-param="macro2" data-min="0" data-max="100" data-default="50" data-unit="">
+  1392→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1393→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1394→                                    </div>
+  1395→                                    <span class="knob-label">Macro 2</span>
+  1396→                                    <span class="knob-value">50</span>
+  1397→                                </div>
+  1398→                                <div class="knob-item">
+  1399→                                    <div class="knob" data-param="macro3" data-min="0" data-max="100" data-default="50" data-unit="">
+  1400→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1401→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1402→                                    </div>
+  1403→                                    <span class="knob-label">Macro 3</span>
+  1404→                                    <span class="knob-value">50</span>
+  1405→                                </div>
+  1406→                                <div class="knob-item">
+  1407→                                    <div class="knob" data-param="macro4" data-min="0" data-max="100" data-default="50" data-unit="">
+  1408→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1409→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1410→                                    </div>
+  1411→                                    <span class="knob-label">Macro 4</span>
+  1412→                                    <span class="knob-value">50</span>
+  1413→                                </div>
+  1414→                                <div class="knob-item">
+  1415→                                    <div class="knob" data-param="macro5" data-min="0" data-max="100" data-default="50" data-unit="">
+  1416→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1417→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1418→                                    </div>
+  1419→                                    <span class="knob-label">Macro 5</span>
+  1420→                                    <span class="knob-value">50</span>
+  1421→                                </div>
+  1422→                                <div class="knob-item">
+  1423→                                    <div class="knob" data-param="macro6" data-min="0" data-max="100" data-default="50" data-unit="">
+  1424→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1425→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1426→                                    </div>
+  1427→                                    <span class="knob-label">Macro 6</span>
+  1428→                                    <span class="knob-value">50</span>
+  1429→                                </div>
+  1430→                                <div class="knob-item">
+  1431→                                    <div class="knob" data-param="macro7" data-min="0" data-max="100" data-default="50" data-unit="">
+  1432→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1433→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1434→                                    </div>
+  1435→                                    <span class="knob-label">Macro 7</span>
+  1436→                                    <span class="knob-value">50</span>
+  1437→                                </div>
+  1438→                                <div class="knob-item">
+  1439→                                    <div class="knob" data-param="macro8" data-min="0" data-max="100" data-default="50" data-unit="">
+  1440→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1441→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1442→                                    </div>
+  1443→                                    <span class="knob-label">Macro 8</span>
+  1444→                                    <span class="knob-value">50</span>
+  1445→                                </div>
+  1446→                            </div>
+  1447→                        </div>
+  1448→                    </div>
+  1449→                </div>
+  1450→
+  1451→                <!-- EFFECTS TAB -->
+  1452→                <div class="tab-content" id="tab-effects">
+  1453→                    <div class="effects-rack">
+  1454→                        <!-- Reverb -->
+  1455→                        <div class="effect-unit active">
+  1456→                            <div class="effect-header">
+  1457→                                <span class="effect-name">Reverb</span>
+  1458→                                <div class="effect-toggle on" data-effect="reverb"></div>
+  1459→                            </div>
+  1460→                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+  1461→                                <option>Hall</option><option>Plate</option><option>Room</option><option>Chamber</option><option>Shimmer</option>
+  1462→                            </select>
+  1463→                            <div class="knob-grid">
+  1464→                                <div class="knob-item">
+  1465→                                    <div class="knob" data-param="revSize" data-min="0" data-max="100" data-default="50" data-unit="%">
+  1466→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1467→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1468→                                    </div>
+  1469→                                    <span class="knob-label">Size</span>
+  1470→                                    <span class="knob-value">50%</span>
+  1471→                                </div>
+  1472→                                <div class="knob-item">
+  1473→                                    <div class="knob" data-param="revDecay" data-min="0.1" data-max="10" data-default="2" data-unit="s">
+  1474→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1475→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1476→                                    </div>
+  1477→                                    <span class="knob-label">Decay</span>
+  1478→                                    <span class="knob-value">2 s</span>
+  1479→                                </div>
+  1480→                                <div class="knob-item">
+  1481→                                    <div class="knob" data-param="revMix" data-min="0" data-max="100" data-default="30" data-unit="%">
+  1482→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1483→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1484→                                    </div>
+  1485→                                    <span class="knob-label">Mix</span>
+  1486→                                    <span class="knob-value">30%</span>
+  1487→                                </div>
+  1488→                            </div>
+  1489→                        </div>
+  1490→
+  1491→                        <!-- Delay -->
+  1492→                        <div class="effect-unit">
+  1493→                            <div class="effect-header">
+  1494→                                <span class="effect-name">Delay</span>
+  1495→                                <div class="effect-toggle" data-effect="delay"></div>
+  1496→                            </div>
+  1497→                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+  1498→                                <option>Stereo</option><option>Ping Pong</option><option>Synced</option>
+  1499→                            </select>
+  1500→                            <div class="knob-grid">
+  1501→                                <div class="knob-item">
+  1502→                                    <div class="knob" data-param="delayTime" data-min="0" data-max="2000" data-default="250" data-unit="ms">
+  1503→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1504→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1505→                                    </div>
+  1506→                                    <span class="knob-label">Time</span>
+  1507→                                    <span class="knob-value">250 ms</span>
+  1508→                                </div>
+  1509→                                <div class="knob-item">
+  1510→                                    <div class="knob" data-param="delayFeedback" data-min="0" data-max="95" data-default="40" data-unit="%">
+  1511→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1512→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1513→                                    </div>
+  1514→                                    <span class="knob-label">Feedback</span>
+  1515→                                    <span class="knob-value">40%</span>
+  1516→                                </div>
+  1517→                                <div class="knob-item">
+  1518→                                    <div class="knob" data-param="delayMix" data-min="0" data-max="100" data-default="25" data-unit="%">
+  1519→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1520→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1521→                                    </div>
+  1522→                                    <span class="knob-label">Mix</span>
+  1523→                                    <span class="knob-value">25%</span>
+  1524→                                </div>
+  1525→                            </div>
+  1526→                        </div>
+  1527→
+  1528→                        <!-- Chorus -->
+  1529→                        <div class="effect-unit">
+  1530→                            <div class="effect-header">
+  1531→                                <span class="effect-name">Chorus</span>
+  1532→                                <div class="effect-toggle" data-effect="chorus"></div>
+  1533→                            </div>
+  1534→                            <div class="knob-grid">
+  1535→                                <div class="knob-item">
+  1536→                                    <div class="knob" data-param="chorusRate" data-min="0.1" data-max="10" data-default="1.5" data-unit="Hz">
+  1537→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1538→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1539→                                    </div>
+  1540→                                    <span class="knob-label">Rate</span>
+  1541→                                    <span class="knob-value">1.5 Hz</span>
+  1542→                                </div>
+  1543→                                <div class="knob-item">
+  1544→                                    <div class="knob" data-param="chorusDepth" data-min="0" data-max="100" data-default="50" data-unit="%">
+  1545→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1546→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1547→                                    </div>
+  1548→                                    <span class="knob-label">Depth</span>
+  1549→                                    <span class="knob-value">50%</span>
+  1550→                                </div>
+  1551→                                <div class="knob-item">
+  1552→                                    <div class="knob" data-param="chorusMix" data-min="0" data-max="100" data-default="35" data-unit="%">
+  1553→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1554→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1555→                                    </div>
+  1556→                                    <span class="knob-label">Mix</span>
+  1557→                                    <span class="knob-value">35%</span>
+  1558→                                </div>
+  1559→                            </div>
+  1560→                        </div>
+  1561→
+  1562→                        <!-- Distortion -->
+  1563→                        <div class="effect-unit">
+  1564→                            <div class="effect-header">
+  1565→                                <span class="effect-name">Drive</span>
+  1566→                                <div class="effect-toggle" data-effect="distortion"></div>
+  1567→                            </div>
+  1568→                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+  1569→                                <option>Tape</option><option>Tube</option><option>Fuzz</option><option>Bitcrush</option><option>Wavefolder</option>
+  1570→                            </select>
+  1571→                            <div class="knob-grid">
+  1572→                                <div class="knob-item">
+  1573→                                    <div class="knob" data-param="driveAmount" data-min="0" data-max="100" data-default="0" data-unit="%">
+  1574→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1575→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1576→                                    </div>
+  1577→                                    <span class="knob-label">Amount</span>
+  1578→                                    <span class="knob-value">0%</span>
+  1579→                                </div>
+  1580→                                <div class="knob-item">
+  1581→                                    <div class="knob" data-param="driveTone" data-min="0" data-max="100" data-default="50" data-unit="%">
+  1582→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1583→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1584→                                    </div>
+  1585→                                    <span class="knob-label">Tone</span>
+  1586→                                    <span class="knob-value">50%</span>
+  1587→                                </div>
+  1588→                            </div>
+  1589→                        </div>
+  1590→
+  1591→                        <!-- EQ -->
+  1592→                        <div class="effect-unit">
+  1593→                            <div class="effect-header">
+  1594→                                <span class="effect-name">EQ</span>
+  1595→                                <div class="effect-toggle on" data-effect="eq"></div>
+  1596→                            </div>
+  1597→                            <div class="knob-grid">
+  1598→                                <div class="knob-item">
+  1599→                                    <div class="knob" data-param="eqLow" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+  1600→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1601→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1602→                                    </div>
+  1603→                                    <span class="knob-label">Low</span>
+  1604→                                    <span class="knob-value">0 dB</span>
+  1605→                                </div>
+  1606→                                <div class="knob-item">
+  1607→                                    <div class="knob" data-param="eqMid" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+  1608→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1609→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1610→                                    </div>
+  1611→                                    <span class="knob-label">Mid</span>
+  1612→                                    <span class="knob-value">0 dB</span>
+  1613→                                </div>
+  1614→                                <div class="knob-item">
+  1615→                                    <div class="knob" data-param="eqHigh" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+  1616→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1617→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1618→                                    </div>
+  1619→                                    <span class="knob-label">High</span>
+  1620→                                    <span class="knob-value">0 dB</span>
+  1621→                                </div>
+  1622→                            </div>
+  1623→                        </div>
+  1624→
+  1625→                        <!-- Compressor -->
+  1626→                        <div class="effect-unit">
+  1627→                            <div class="effect-header">
+  1628→                                <span class="effect-name">Compressor</span>
+  1629→                                <div class="effect-toggle" data-effect="compressor"></div>
+  1630→                            </div>
+  1631→                            <div class="knob-grid">
+  1632→                                <div class="knob-item">
+  1633→                                    <div class="knob" data-param="compThreshold" data-min="-60" data-max="0" data-default="-18" data-unit="dB">
+  1634→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1635→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1636→                                    </div>
+  1637→                                    <span class="knob-label">Thresh</span>
+  1638→                                    <span class="knob-value">-18 dB</span>
+  1639→                                </div>
+  1640→                                <div class="knob-item">
+  1641→                                    <div class="knob" data-param="compRatio" data-min="1" data-max="20" data-default="4" data-unit=":1">
+  1642→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1643→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1644→                                    </div>
+  1645→                                    <span class="knob-label">Ratio</span>
+  1646→                                    <span class="knob-value">4:1</span>
+  1647→                                </div>
+  1648→                                <div class="knob-item">
+  1649→                                    <div class="knob" data-param="compMakeup" data-min="0" data-max="24" data-default="0" data-unit="dB">
+  1650→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1651→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1652→                                    </div>
+  1653→                                    <span class="knob-label">Makeup</span>
+  1654→                                    <span class="knob-value">0 dB</span>
+  1655→                                </div>
+  1656→                            </div>
+  1657→                        </div>
+  1658→
+  1659→                        <!-- Stereo Widener -->
+  1660→                        <div class="effect-unit">
+  1661→                            <div class="effect-header">
+  1662→                                <span class="effect-name">Stereo</span>
+  1663→                                <div class="effect-toggle" data-effect="stereo"></div>
+  1664→                            </div>
+  1665→                            <div class="knob-grid">
+  1666→                                <div class="knob-item">
+  1667→                                    <div class="knob" data-param="stereoWidth" data-min="0" data-max="200" data-default="100" data-unit="%">
+  1668→                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+  1669→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1670→                                    </div>
+  1671→                                    <span class="knob-label">Width</span>
+  1672→                                    <span class="knob-value">100%</span>
+  1673→                                </div>
+  1674→                            </div>
+  1675→                        </div>
+  1676→
+  1677→                        <!-- Limiter -->
+  1678→                        <div class="effect-unit active">
+  1679→                            <div class="effect-header">
+  1680→                                <span class="effect-name">Limiter</span>
+  1681→                                <div class="effect-toggle on" data-effect="limiter"></div>
+  1682→                            </div>
+  1683→                            <div class="knob-grid">
+  1684→                                <div class="knob-item">
+  1685→                                    <div class="knob" data-param="limiterCeiling" data-min="-6" data-max="0" data-default="-0.3" data-unit="dB">
+  1686→                                        <div class="knob-ring"></div><div class class="knob-fill"></div>
+  1687→                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+  1688→                                    </div>
+  1689→                                    <span class="knob-label">Ceiling</span>
+  1690→                                    <span class="knob-value">-0.3 dB</span>
+  1691→                                </div>
+  1692→                            </div>
+  1693→                        </div>
+  1694→                    </div>
+  1695→                </div>
+  1696→
+  1697→                <!-- ARPEGGIATOR TAB -->
+  1698→                <div class="tab-content" id="tab-arpeggiator">
+  1699→                    <div class="section-grid">
+
+[showing lines 1200-1699 of 4608; use offset=1700 with limit to continue reading]
