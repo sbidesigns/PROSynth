@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySynth PRO - Ultimate Virtual Instrument</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-panel: #12121a;
+            --bg-section: #1a1a25;
+            --accent: #00D4FF;
+            --accent2: #FF006E;
+            --accent3: #8B5CF6;
+            --text: #E8E8F0;
+            --text-dim: #6B7280;
+            --border: #2A2A3A;
+            --glow: rgba(0, 212, 255, 0.3);
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Main Plugin Window */
+        .plugin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .plugin-window {
+            background: linear-gradient(180deg, #15151f 0%, #0d0d14 100%);
+            border-radius: 16px;
+            box-shadow: 
+                0 30px 100px rgba(0,0,0,0.8),
+                0 0 60px var(--glow),
+                inset 0 1px 0 rgba(255,255,255,0.05),
+                0 0 0 1px var(--border);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.1), transparent);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px var(--glow); }
+            50% { box-shadow: 0 0 35px var(--glow), 0 0 50px rgba(139,92,246,0.2); }
+        }
+
+        .plugin-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .plugin-subtitle {
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 6px;
+            margin-top: -2px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .preset-display {
+            background: var(--bg-panel);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-display:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--glow);
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-icon.active {
+            background: var(--accent);
+            color: var(--bg-dark);
+            border-color: var(--accent);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: var(--bg-panel);
+            padding: 5px;
+            gap: 3px;
+            margin: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 7px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(139,92,246,0.2));
+            color: var(--accent);
+            box-shadow: 0 0 20px var(--glow);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            padding: 0 15px 10px;
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Grid */
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .section {
+            background: var(--bg-section);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2));
+            opacity: 0.6;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .section-badge {
+            font-size: 8px;
+            padding: 2px 8px;
+            background: rgba(0,212,255,0.15);
+            color: var(--accent);
+            border-radius: 10px;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+
+        /* Knob System */
+        .knob-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .knob-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 65px;
+        }
+
+        .knob {
+            width: 52px;
+            height: 52px;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .knob-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 135deg,
+                var(--border) 0deg,
+                var(--border) 270deg,
+                transparent 270deg
+            );
+        }
+
+        .knob-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 135deg,
+                var(--accent) 135deg,
+                var(--accent) calc(var(--value, 0.5) * 270deg + 135deg),
+                transparent calc(var(--value, 0.5) * 270deg + 135deg)
+            );
+            transition: background 0.05s;
+        }
+
+        .knob-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(145deg, #2a2a3a, #1a1a25);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 4px rgba(0,0,0,0.5),
+                0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .knob-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 18px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+            transform-origin: left center;
+            pointer-events: none;
+            box-shadow: 0 0 8px var(--glow);
+        }
+
+        .knob-label {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-top: 4px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .knob-value {
+            font-size: 8px;
+            color: var(--accent);
+            text-align: center;
+            min-height: 12px;
+        }
+
+        /* Large Knob (for main controls) */
+        .knob-lg .knob {
+            width: 70px;
+            height: 70px;
+        }
+
+        .knob-lg .knob-inner {
+            width: 52px;
+            height: 52px;
+        }
+
+        .knob-lg .knob-indicator {
+            width: 24px;
+        }
+
+        /* Dropdown/Select */
+        .select-styled {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236B7280'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .select-styled:hover, .select-styled:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--glow);
+        }
+
+        /* Modulation Matrix */
+        .mod-matrix {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 10px;
+        }
+
+        .mod-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 40px;
+            gap: 8px;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mod-row:last-child {
+            border-bottom: none;
+        }
+
+        .mod-source, .mod-dest {
+            background: var(--bg-section);
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            font-size: 9px;
+        }
+
+        .mod-amount {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .mod-amount::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--glow);
+        }
+
+        /* Effects Rack */
+        .effects-rack {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .effect-unit {
+            background: var(--bg-panel);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .effect-unit:hover {
+            border-color: var(--accent3);
+        }
+
+        .effect-unit.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0,212,255,0.15);
+        }
+
+        .effect-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .effect-name {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent3);
+            text-transform: uppercase;
+        }
+
+        .effect-toggle {
+            width: 28px;
+            height: 16px;
+            background: var(--border);
+            border-radius: 8px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .effect-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .effect-toggle.on {
+            background: var(--accent);
+        }
+
+        .effect-toggle.on::after {
+            left: 14px;
+            background: white;
+        }
+
+        /* Arpeggiator Section */
+        .arp-section {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(0,212,255,0.05));
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+
+        .step-sequencer {
+            display: flex;
+            gap: 3px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: var(--text-dim);
+            transition: all 0.15s;
+        }
+
+        .step:hover {
+            border-color: var(--accent3);
+        }
+
+        .step.on {
+            background: linear-gradient(135deg, var(--accent3), var(--accent));
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 10px var(--glow);
+        }
+
+        .step.current {
+            animation: stepPulse 0.2s ease;
+        }
+
+        @keyframes stepPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Keyboard */
+        .keyboard-container {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .keyboard {
+            display: flex;
+            justify-content: center;
+            height: 55px;
+            position: relative;
+        }
+
+        .key {
+            width: 26px;
+            height: 50px;
+            background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+            border: 1px solid #999;
+            border-radius: 0 0 5px 5px;
+            margin-right: 1px;
+            cursor: pointer;
+            transition: all 0.08s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .key.black {
+            width: 16px;
+            height: 32px;
+            background: linear-gradient(180deg, #333 0%, #111 100%);
+            border-color: #000;
+            margin-left: -9px;
+            margin-right: -10px;
+            z-index: 2;
+        }
+
+        .key:hover {
+            background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
+        }
+
+        .key.black:hover {
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+        }
+
+        .key.active {
+            background: linear-gradient(180deg, var(--accent) 0%, #0099bb 100%) !important;
+            transform: translateY(2px);
+            box-shadow: 0 0 15px var(--glow);
+        }
+
+        .key.black.active {
+            background: linear-gradient(180deg, var(--accent3) 0%, #6b21a8 100%) !important;
+        }
+
+        .key-label {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: #666;
+        }
+
+        .key.active .key-label {
+            color: white;
+        }
+
+        /* Visualizer */
+        .visualizer {
+            height: 60px;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualizer canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Waveform Display */
+        .waveform-display {
+            height: 80px;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-display canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Spectrum Analyzer */
+        .spectrum {
+            height: 50px;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spectrum-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            padding: 5px;
+            gap: 2px;
+        }
+
+        .spectrum-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), var(--accent3));
+            border-radius: 2px 2px 0 0;
+            min-height: 3px;
+            transition: height 0.05s ease;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 280px;
+            background: rgba(18, 18, 26, 0.98);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-panel h2 {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list {
+            list-style: none;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .feature-list li {
+            padding-left: 18px;
+            position: relative;
+            color: var(--text-dim);
+        }
+
+        .feature-list li::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-size: 8px;
+        }
+
+        .close-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: var(--bg-section);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .close-info:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .effects-rack {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="plugin-container">
+        <div class="plugin-window">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="logo">
+                    <div class="logo-icon">M</div>
+                    <div>
+                        <div class="plugin-title">MY SYNTH PRO</div>
+                        <div class="plugin-subtitle">ULTIMATE SYNTHESIS ENGINE</div>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <button class="preset-display" id="presetDisplay">Init Patch ▾</button>
+                    <button class="btn-icon" title="Randomize" id="randomizeBtn">🎲</button>
+                    <button class="btn-icon" title="Undo" id="undoBtn">↩</button>
+                    <button class="btn-icon" title="Redo" id="redoBtn">↪</button>
+                    <button class="btn-icon active" title="A/B Compare" id="compareBtn">AB</button>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGATION -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="oscillators">🔊 Oscillators</button>
+                <button class="tab-btn" data-tab="filters">🎛️ Filters</button>
+                <button class="tab-btn" data-tab="modulation">🌀 Modulation</button>
+                <button class="tab-btn" data-tab="effects">✨ Effects</button>
+                <button class="tab-btn" data-tab="arpeggiator">🎼 Arp/Seq</button>
+                <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                
+                <!-- OSCILLATORS TAB -->
+                <div class="tab-content active" id="tab-oscillators">
+                    <div class="section-grid">
+                        <!-- Oscillator 1 -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Oscillator 1</span>
+                                <span class="section-badge">MAIN</span>
+                            </div>
+                            <select class="select-styled" id="osc1Type">
+                                <option value="wavetable">Wavetable</option>
+                                <option value="sawtooth">Sawtooth</option>
+                                <option value="square">Square/PWM</option>
+                                <option value="sine">Sine</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="noise">Noise</option>
+                                <option value="fm">FM Operator</option>
+                                <option value="granular">Granular</option>
+                                <option value="additive">Additive</option>
+                            </select>
+                            
+                            <div class="waveform-display">
+                                <canvas id="waveformCanvas"></canvas>
+                            </div>
+                            
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc1Pitch" data-min="-24" data-max="24" data-default="0" data-unit="st">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Pitch</span>
+                                    <span class="knob-value">0 st</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc1Detune" data-min="-50" data-max="50" data-default="0" data-unit="¢">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Detune</span>
+                                    <span class="knob-value">0 ¢</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc1Pos" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Position</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Oscillator 2 -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Oscillator 2</span>
+                                <span class="section-badge">LAYER</span>
+                            </div>
+                            <select class="select-styled" id="osc2Type">
+                                <option value="sawtooth">Sawtooth</option>
+                                <option value="square">Square/PWM</option>
+                                <option value="sine">Sine</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="noise">Noise</option>
+                                <option value="fm">FM Operator</option>
+                            </select>
+                            
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc2Pitch" data-min="-24" data-max="24" data-default="-7" data-unit="st">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Pitch</span>
+                                    <span class="knob-value">-7 st</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc2Detune" data-min="-50" data-max="50" data-default="7" data-unit="¢">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Detune</span>
+                                    <span class="knob-value">7 ¢</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="osc2Level" data-min="0" data-max="100" data-default="75" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Level</span>
+                                    <span class="knob-value">75%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unison / Supersaw -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Unison / Supersaw</span>
+                                <span class="section-badge">THICKNESS</span>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item knob-lg">
+                                    <div class="knob" data-param="unisonVoices" data-min="1" data-max="16" data-default="1" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Voices</span>
+                                    <span class="knob-value">1</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="unisonSpread" data-min="0" data-max="100" data-default="20" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Spread</span>
+                                    <span class="knob-value">20</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="unisonDetune" data-min="0" data-max="50" data-default="10" data-unit="¢">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Detune</span>
+                                    <span class="knob-value">10¢</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Noise & Ring Mod -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Noise / RM</span>
+                                <span class="section-badge">TEXTURE</span>
+                            </div>
+                            <select class="select-styled" id="noiseType">
+                                <option value="white">White Noise</option>
+                                <option value="pink">Pink Noise</option>
+                                <option value="brown">Brown Noise</option>
+                                <option value="digital">Digital</option>
+                                <option value="crackles">Crackles</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="noiseLevel" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Noise</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="ringMod" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Ring Mod</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="ringModFreq" data-min="0.1" data-max="100" data-default="1" data-unit="Hz">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">RM Freq</span>
+                                    <span class="knob-value">1 Hz</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADSR Envelope -->
+                    <div class="section" style="margin-top: 12px;">
+                        <div class="section-header">
+                            <span class="section-title">Amplitude Envelope (ADSR)</span>
+                            <span class="section-badge">VOLUME SHAPE</span>
+                        </div>
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div style="display: flex; gap: 15px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="attack" data-min="0.001" data-max="5" data-default="0.01" data-unit="s" data-scale="log">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label" style="font-size:13px;font-weight:bold;">A</span>
+                                    <span class="knob-value">0.01s</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="decay" data-min="0.001" data-max="5" data-default="0.2" data-unit="s" data-scale="log">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label" style="font-size:13px;font-weight:bold;">D</span>
+                                    <span class="knob-value">0.20s</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="sustain" data-min="0" data-max="100" data-default="70" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label" style="font-size:13px;font-weight:bold;">S</span>
+                                    <span class="knob-value">70%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="release" data-min="0.01" data-max="10" data-default="0.3" data-unit="s" data-scale="log">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label" style="font-size:13px;font-weight:bold;">R</span>
+                                    <span class="knob-value">0.30s</span>
+                                </div>
+                            </div>
+                            <svg viewBox="0 0 300 100" style="flex:1;height:90px;" id="adsrVisual">
+                                <defs>
+                                    <linearGradient id="envGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.6"/>
+                                        <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:0.1"/>
+                                    </linearGradient>
+                                </defs>
+                                <line x1="0" y1="10" x2="300" y2="10" stroke="#2A2A3A" stroke-width="0.5"/>
+                                <line x1="0" y1="50" x2="300" y2="50" stroke="#2A2A3A" stroke-width="0.5"/>
+                                <line x1="0" y1="90" x2="300" y2="90" stroke="#2A2A3A" stroke-width="0.5"/>
+                                <path id="adsrPath" d="M0,90 L30,10 L70,45 L220,45 L260,90" fill="url(#envGrad)" stroke="#00D4FF" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTERS TAB -->
+                <div class="tab-content" id="tab-filters">
+                    <div class="section-grid">
+                        <!-- Filter 1 -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Filter 1</span>
+                                <span class="section-badge">PRIMARY</span>
+                            </div>
+                            <select class="select-styled" id="filter1Type">
+                                <option value="lp24">Low Pass 24dB</option>
+                                <option value="lp12">Low Pass 12dB</option>
+                                <option value="hp24">High Pass 24dB</option>
+                                <option value="hp12">High Pass 12dB</option>
+                                <option value="bp">Band Pass</option>
+                                <option value="notch">Notch</option>
+                                <option value="comb">Comb</option>
+                                <option value="formant">Formant</option>
+                                <option value="moog">Moog Ladder</option>
+                                <option value="k35">K35 SEM</option>
+                                <option value="diode">Diode Ladder</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item knob-lg">
+                                    <div class="knob" data-param="filter1Cutoff" data-min="20" data-max="20000" data-default="8000" data-unit="Hz" data-scale="exp">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Cutoff</span>
+                                    <span class="knob-value">8 kHz</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter1Reso" data-min="0.1" data-max="20" data-default="1" data-unit="Q">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Resonance</span>
+                                    <span class="knob-value">1.0 Q</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter1Drive" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Drive</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter1Env" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Env></span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter1KeyTrack" data-min="0" data-max="100" data-default="33" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Key Trk</span>
+                                    <span class="knob-value">33%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter 2 -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Filter 2</span>
+                                <span class="section-badge">SECONDARY</span>
+                            </div>
+                            <select class="select-styled" id="filter2Type">
+                                <option value="off">Off</option>
+                                <option value="lp24">Low Pass 24dB</option>
+                                <option value="hp24">High Pass 24dB</option>
+                                <option value="bp">Band Pass</option>
+                                <option value="notch">Notch</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item knob-lg">
+                                    <div class="knob" data-param="filter2Cutoff" data-min="20" data-max="20000" data-default="4000" data-unit="Hz" data-scale="exp">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Cutoff</span>
+                                    <span class="knob-value">4 kHz</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter2Reso" data-min="0.1" data-max="20" data-default="1" data-unit="Q">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Resonance</span>
+                                    <span class="knob-value">1.0 Q</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filter2Env" data-min="0" data-max="100" data-default="25" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knod-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Env></span>
+                                    <span class="knob-value">25%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter Routing & Formant -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Filter Routing</span>
+                                <span class="section-badge">SIGNAL FLOW</span>
+                            </div>
+                            <select class="select-styled" id="filterRouting">
+                                <option value="serial">Serial (1 → 2)</option>
+                                <option value="parallel">Parallel</option>
+                                <option value="split">Split (Freq)</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="filterMix" data-min="0" data-max="100" data-default="100" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Filter Mix</span>
+                                    <span class="knob-value">100%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="formantVowel" data-min="0" data-max="4" data-default="0" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Formant</span>
+                                    <span class="knob-value">A</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULATION TAB -->
+                <div class="tab-content" id="tab-modulation">
+                    <div class="section-grid">
+                        <!-- LFOs -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">LFO 1</span>
+                                <span class="section-badge">MODULATION</span>
+                            </div>
+                            <select class="select-styled" id="lfo1Shape">
+                                <option value="sine">Sine</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="square">Square</option>
+                                <option value="sawup">Saw Up</option>
+                                <option value="sawdown">Saw Down</option>
+                                <option value="random">Random S&H</option>
+                                <option value="noise">Smooth Random</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="lfo1Rate" data-min="0.01" data-max="30" data-default="1" data-unit="Hz">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Rate</span>
+                                    <span class="knob-value">1 Hz</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="lfo1Depth" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Depth</span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="lfo1Phase" data-min="0" data-max="360" data-default="0" data-unit="°">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Phase</span>
+                                    <span class="knob-value">0°</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">LFO 2</span>
+                                <span class="section-badge">MODULATION</span>
+                            </div>
+                            <select class="select-styled" id="lfo2Shape">
+                                <option value="triangle">Triangle</option>
+                                <option value="sine">Sine</option>
+                                <option value="square">Square</option>
+                                <option value="random">Random S&H</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top: 10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="lfo2Rate" data-min="0.01" data-max="30" data-default="2" data-unit="Hz">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Rate</span>
+                                    <span class="knob-value">2 Hz</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="lfo2Depth" data-min="0" data-max="100" data-default="30" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Depth</span>
+                                    <span class="knob-value">30%</span>
+                                </div>
+                                </div>
+                        </div>
+
+                        <!-- Modulation Matrix -->
+                        <div class="section" style="grid-column: span 2;">
+                            <div class="section-header">
+                                <span class="section-title">Modulation Matrix</span>
+                                <span class="section-badge">8 SLOTS</span>
+                            </div>
+                            <div class="mod-matrix">
+                                <div class="mod-row">
+                                    <select class="mod-source"><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Velocity</option><option>Macro 1</option></select>
+                                    <select class="mod-dest"><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option><option>Pan</option><option>Volume</option></select>
+                                    <input type="range" class="mod-amount" value="50">
+                                </div>
+                                <div class="mod-row">
+                                    <select class="mod-source"><option>Env 1</option><option>LFO 1</option><option>LFO 2</option><option>Velocity</option><option>Macro 1</option></select>
+                                    <select class="mod-dest"><option>Filter Cutoff</option><option>Osc Pitch</option><option>Filter Reso</option><option>Pan</option><option>Volume</option></select>
+                                    <input type="range" class="mod-amount" value="75">
+                                </div>
+                                <div class="mod-row">
+                                    <select class="mod-source"><option>Velocity</option><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Macro 1</option></select>
+                                    <select class="mod-dest"><option>Volume</option><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option><option>Pan</option></select>
+                                    <input type="range" class="mod-amount" value="30">
+                                </div>
+                                <div class="mod-row">
+                                    <select class="mod-source"><option>Macro 1</option><option>LFO 1</option><option>LFO 2</option><option>Env 1</option><option>Velocity</option></select>
+                                    <select class="mod-dest"><option>Pan</option><option>Volume</option><option>Osc Pitch</option><option>Filter Cutoff</option><option>Filter Reso</option></select>
+                                    <input type="range" class="mod-amount" value="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Macro Controls -->
+                        <div class="section" style="grid-column: span 2;">
+                            <div class="section-header">
+                                <span class="section-title">Macro Controls</span>
+                                <span class="section-badge">ASSIGNABLE</span>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro1" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 1</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro2" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 2</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro3" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 3</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro4" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 4</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro5" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 5</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro6" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 6</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro7" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 7</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="macro8" data-min="0" data-max="100" data-default="50" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Macro 8</span>
+                                    <span class="knob-value">50</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EFFECTS TAB -->
+                <div class="tab-content" id="tab-effects">
+                    <div class="effects-rack">
+                        <!-- Reverb -->
+                        <div class="effect-unit active">
+                            <div class="effect-header">
+                                <span class="effect-name">Reverb</span>
+                                <div class="effect-toggle on" data-effect="reverb"></div>
+                            </div>
+                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+                                <option>Hall</option><option>Plate</option><option>Room</option><option>Chamber</option><option>Shimmer</option>
+                            </select>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="revSize" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Size</span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="revDecay" data-min="0.1" data-max="10" data-default="2" data-unit="s">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Decay</span>
+                                    <span class="knob-value">2 s</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="revMix" data-min="0" data-max="100" data-default="30" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Mix</span>
+                                    <span class="knob-value">30%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delay -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">Delay</span>
+                                <div class="effect-toggle" data-effect="delay"></div>
+                            </div>
+                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+                                <option>Stereo</option><option>Ping Pong</option><option>Synced</option>
+                            </select>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="delayTime" data-min="0" data-max="2000" data-default="250" data-unit="ms">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Time</span>
+                                    <span class="knob-value">250 ms</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="delayFeedback" data-min="0" data-max="95" data-default="40" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Feedback</span>
+                                    <span class="knob-value">40%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="delayMix" data-min="0" data-max="100" data-default="25" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Mix</span>
+                                    <span class="knob-value">25%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chorus -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">Chorus</span>
+                                <div class="effect-toggle" data-effect="chorus"></div>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="chorusRate" data-min="0.1" data-max="10" data-default="1.5" data-unit="Hz">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Rate</span>
+                                    <span class="knob-value">1.5 Hz</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="chorusDepth" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Depth</span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="chorusMix" data-min="0" data-max="100" data-default="35" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Mix</span>
+                                    <span class="knob-value">35%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distortion -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">Drive</span>
+                                <div class="effect-toggle" data-effect="distortion"></div>
+                            </div>
+                            <select class="select-styled" style="font-size:9px;margin-bottom:8px;">
+                                <option>Tape</option><option>Tube</option><option>Fuzz</option><option>Bitcrush</option><option>Wavefolder</option>
+                            </select>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="driveAmount" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Amount</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="driveTone" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Tone</span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EQ -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">EQ</span>
+                                <div class="effect-toggle on" data-effect="eq"></div>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="eqLow" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Low</span>
+                                    <span class="knob-value">0 dB</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="eqMid" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Mid</span>
+                                    <span class="knob-value">0 dB</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="eqHigh" data-min="-12" data-max="12" data-default="0" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">High</span>
+                                    <span class="knob-value">0 dB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compressor -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">Compressor</span>
+                                <div class="effect-toggle" data-effect="compressor"></div>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="compThreshold" data-min="-60" data-max="0" data-default="-18" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Thresh</span>
+                                    <span class="knob-value">-18 dB</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="compRatio" data-min="1" data-max="20" data-default="4" data-unit=":1">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Ratio</span>
+                                    <span class="knob-value">4:1</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="compMakeup" data-min="0" data-max="24" data-default="0" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Makeup</span>
+                                    <span class="knob-value">0 dB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stereo Widener -->
+                        <div class="effect-unit">
+                            <div class="effect-header">
+                                <span class="effect-name">Stereo</span>
+                                <div class="effect-toggle" data-effect="stereo"></div>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="stereoWidth" data-min="0" data-max="200" data-default="100" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Width</span>
+                                    <span class="knob-value">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Limiter -->
+                        <div class="effect-unit active">
+                            <div class="effect-header">
+                                <span class="effect-name">Limiter</span>
+                                <div class="effect-toggle on" data-effect="limiter"></div>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="limiterCeiling" data-min="-6" data-max="0" data-default="-0.3" data-unit="dB">
+                                        <div class="knob-ring"></div><div class class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Ceiling</span>
+                                    <span class="knob-value">-0.3 dB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ARPEGGIATOR TAB -->
+                <div class="tab-content" id="tab-arpeggiator">
+                    <div class="section-grid">
+                        <!-- Arpeggiator -->
+                        <div class="section arp-section">
+                            <div class="section-header">
+                                <span class="section-title">Arpeggiator</span>
+                                <span class="section-badge">MELODY</span>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                                <button class="btn-icon active" id="arpOnBtn" style="background:var(--accent);color:#000;">▶</button>
+                                <select class="select-styled" id="arpMode" style="flex:1;">
+                                    <option>Up</option><option>Down</option><option>UpDown</option><option>Random</option><option>As Played</option><option>Chord</option>
+                                </select>
+                            </div>
+                            <div class="knob-grid">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="arpRate" data-min="1" data-max="64" data-default="16" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Rate</span>
+                                    <span class="knob-value">1/16</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="arpOctaves" data-min="1" data-max="4" data-default="1" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Octaves</span>
+                                    <span class="knob-value">1</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="arpGate" data-min="10" data-max="100" data-default="90" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Gate</span>
+                                    <span class="knob-value">90%</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="arpSwing" data-min="0" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Swing</span>
+                                    <span class="knob-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step Sequencer -->
+                        <div class="section arp-section" style="grid-column: span 2;">
+                            <div class="section-header">
+                                <span class="section-title">Step Sequencer</span>
+                                <span class="section-badge">16 STEPS</span>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                                <button class="btn-icon" id="seqPlayBtn">▶</button>
+                                <select class="select-styled" id="seqScale">
+                                    <option>Chromatic</option><option>Major</option><option>Minor</option><option>Pentatonic</option><option>Dorian</option><option>Mixolydian</option><option>Blues</option>
+                                </select>
+                                <select class="select-styled" id="seqRoot">
+                                    <option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option>
+                                </select>
+                            </div>
+                            <div class="step-sequencer" id="stepSequencer">
+                                <!-- Steps generated by JS -->
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="seqVelocity" data-min="1" data-max="127" data-default="100" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Vel</span>
+                                    <span class="knob-value">100</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="seqProbability" data-min="0" data-max="100" data-default="100" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Prob</span>
+                                    <span class="knob-value">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS TAB -->
+                <div class="tab-content" id="tab-settings">
+                    <div class="section-grid">
+                        <!-- Master -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Master Output</span>
+                                <span class="section-badge">OUTPUT</span>
+                            </div>
+                            <div class="knob-grid" style="justify-content:center;">
+                                <div class="knob-item knob-lg">
+                                    <div class="knob" data-param="masterGain" data-min="-60" data-max="6" data-default="-3" data-unit="dB">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Master Gain</span>
+                                    <span class="knob-value">-3 dB</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="pan" data-min="-100" data-max="100" data-default="0" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Pan</span>
+                                    <span class="knob-value">C</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="voiceLimit" data-min="1" data-max="32" data-default="16" data-unit="">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Voices</span>
+                                    <span class="knob-value">16</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voice Mode -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Voice Mode</span>
+                                <span class="section-badge">PLAY STYLE</span>
+                            </div>
+                            <select class="select-styled" id="voiceMode">
+                                <option value="poly">Polyphonic</option>
+                                <option value="mono">Mono</option>
+                                <option value="legato">Legato</option>
+                                <option value="trueMono">True Mono</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top:10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="portamento" data-min="0" data-max="5000" data-default="0" data-unit="ms">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Portamento</span>
+                                    <span class="knob-value">0 ms</span>
+                                </div>
+                                <div class="knob-item">
+                                    <div class="knob" data-param="glideCurve" data-min="0" data-max="100" data-default="50" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Glide Curve</span>
+                                    <span class="knob-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quality -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">Quality Settings</span>
+                                <span class="section-badge">CPU vs SOUND</span>
+                            </div>
+                            <select class="select-styled" id="oversampling">
+                                <option value="1">No Oversampling</option>
+                                <option value="2">2x Oversampling</option>
+                                <option value="4" selected>4x Oversampling</option>
+                                <option value="8">8x Oversampling</option>
+                            </select>
+                            <select class="select-styled" id="qualityMode" style="margin-top:8px;">
+                                <option value="eco">Eco (Lower CPU)</option>
+                                <option value="balanced" selected>Balanced</option>
+                                <option value="hi">High Quality</option>
+                                <option value="ultra">Ultra (Best Sound)</option>
+                            </select>
+                            <div class="knob-grid" style="margin-top:10px;">
+                                <div class="knob-item">
+                                    <div class="knob" data-param="antiAlias" data-min="0" data-max="100" data-default="80" data-unit="%">
+                                        <div class="knob-ring"></div><div class="knob-fill"></div>
+                                        <div class="knob-inner"></div><div class="knob-indicator"></div>
+                                    </div>
+                                    <span class="knob-label">Anti-Alias</span>
+                                    <span class="knob-value">80%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MPE & Tuning -->
+                        <div class="section">
+                            <div class="section-header">
+                                <span class="section-title">MPE & Tuning</span>
+                                <span class="section-badge">ADVANCED</span>
+                            </div>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);cursor:pointer;margin-bottom:10px;">
+                                <input type="checkbox" checked style="accent-color:var(--accent);">
+                                Enable MPE Support
+                            </label>
+                            <select class="select-styled" id="tuningSystem">
+                                <option value="12tet">12-TET Equal Temperament</option>
+                                <option value="just">Just Intonation</option>
+                                <option value="pythagorean">Pythagorean</option>
+                                <option value="meantone">Meantone</option>
+                                <option value="custom">Custom (Scala File)</option>
+                            </select>
+                            <select class="select-styled" id="pitchBendRange" style="margin-top:8px;">
+                                <option value="1">±1 Semitone</option>
+                                <option value="2" selected>±2 Semitones</option>
+                                <option value="6">±6 Semitones</option>
+                                <option value="12">±12 Semitones (Octave)</option>
+                                <option value="24">±24 Semitones (2 Oct)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KEYBOARD -->
+            <div class="keyboard-container">
+                <div class="keyboard" id="keyboard"></div>
+            </div>
+
+            <!-- VISUALIZER -->
+            <div class="visualizer">
+                <canvas id="visualizerCanvas"></canvas>
+            </div>
+
+            <!-- STATUS BAR -->
+            <div class="status-bar">
+                <div class="status-item">
+                    Voices: <span class="status-value" id="voiceCount">0 / 16</span>
+                </div>
+                <div class="status-item">
+                    CPU: <span class="status-value" id="cpuUsage">0%</span>
+                </div>
+                <div class="status-item">
+                    Sample Rate: <span class="status-value">44.1kHz</span>
+                </div>
+                <div class="status-item">
+                    Latency: <span class="status-value">5.8ms</span>
+                </div>
+                <div class="status-item">
+                    BPM: <span class="status-value" id="bpmDisplay">120</span>
+                </div>
+                <div class="status-item">
+                    MySynth PRO v2.0
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO PANEL -->
+    <div class="info-panel" id="infoPanel">
+        <button class="close-info" onclick="document.getElementById('infoPanel').style.display='none'">×</button>
+        <h2>🚀 MySynth PRO Features</h2>
+        <ul class="feature-list">
+            <li>Wavetable synthesis with morphing</li>
+            <li>FM, Granular & Additive engines</li>
+            <li>16-voice Unison / Supersaw</li>
+            <li>Analog-modeled filters (Moog, K35, Diode)</li>
+            <li>Dual filter routing (Serial/Parallel/Split)</li>
+            <li>Full modulation matrix (8 slots)</li>
+            <li>4 LFOs + 3 Envelopes + 8 Macros</li>
+            <li>MPE support for expressive playing</li>
+            <li>Studio effects rack (Reverb, Delay, etc.)</li>
+            <li>Advanced arpeggiator & sequencer</li>
+            <li>Scale-aware step sequencer</li>
+            <li>Microtonal tuning support</li>
+            <li>2x/4x/8x oversampling options</li>
+        </ul>
+    </div>
+
+    <script>
+        // ===== KNOB SYSTEM =====
+        const knobs = document.querySelectorAll('.knob');
+        
+        knobs.forEach(knob => {
+            let isDragging = false;
+            let startY, startValue;
+            
+            const param = knob.dataset.param;
+            const min = parseFloat(knob.dataset.min);
+            const max = parseFloat(knob.dataset.max);
+            const defaultVal = parseFloat(knob.dataset.default);
+            const unit = knob.dataset.unit || '';
+            const scale = knob.dataset.scale || 'linear';
+            
+            let currentValue = defaultVal;
+            updateKnobVisual(knob, currentValue);
+            
+            function updateKnobVisual(knob, value) {
+                let normalized;
+                if (scale === 'log') {
+                    normalized = (Math.log(value) - Math.log(min)) / (Math.log(max) - Math.log(min));
+                } else if (scale === 'exp') {
+                    normalized = Math.log(value/min) / Math.log(max/min);
+                } else {
+                    normalized = (value - min) / (max - min);
+                }
+                normalized = Math.max(0, Math.min(1, normalized));
+                
+                knob.style.setProperty('--value', normalized);
+                
+                const angle = -135 + normalized * 270;
+                const indicator = knob.querySelector('.knob-indicator');
+                if (indicator) indicator.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
+                
+                const container = knob.closest('.knob-item') || knob.parentElement;
+                const valueDisplay = container.querySelector('.knob-value');
+                if (valueDisplay) {
+                    let displayValue;
+                    if (unit === '%') displayValue = `${Math.round(value)} ${unit}`;
+                    else if (unit === 'Hz') displayValue = value >= 1000 ? `${(value/1000).toFixed(1)} kHz` : `${Math.round(value)} Hz`;
+                    else if (unit === 'dB') displayValue = `${value.toFixed(1)} ${unit}`;
+                    else if (unit === 's' || unit === 'ms') displayValue = `${value.toFixed(value<1?2:0)} ${unit}`;
+                    else if (unit === ':1') displayValue = `${value}:1`;
+                    else if (unit === '°') displayValue = `${Math.round(value)}°`;
+                    else if (unit === '¢') displayValue = `${Math.round(value)} ¢`;
+                    else if (unit === 'st') displayValue = `${Math.round(value)} st`;
+                    else if (param === 'formantVowel') displayValue = ['A','E','I','O','U'][Math.round(value)];
+                    else if (Number.isInteger(value)) displayValue = value;
+                    else displayValue = value.toFixed(2);
+                    
+                    valueDisplay.textContent = displayValue.trim();
+                }
+                
+                updateADSRVisual();
+                updateWaveform();
+            }
+            
+            knob.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                startValue = currentValue;
+                document.body.style.cursor = 'ns-resize';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const delta = (startY - e.clientY) * 0.5;
+                const range = max - min;
+                let newValue = startValue + (delta / 150) * range;
+                newValue = Math.max(min, Math.min(max, newValue));
+                currentValue = newValue;
+                updateKnobVisual(knob, currentValue);
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+            
+            knob.addEventListener('dblclick', () => {
+                currentValue = defaultVal;
+                updateKnobVisual(knob, currentValue);
+            });
+        });
+
+        // ===== TAB NAVIGATION =====
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        // ===== EFFECT TOGGLES =====
+        document.querySelectorAll('.effect-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('on');
+                toggle.closest('.effect-unit').classList.toggle('active');
+            });
+        });
+
+        // ===== STEP SEQUENCER =====
+        const stepSequencer = document.getElementById('stepSequencer');
+        for (let i = 0; i < 16; i++) {
+            const step = document.createElement('div');
+            step.className = 'step';
+            step.dataset.step = i;
+            step.textContent = (i % 4 === 0) ? i/4 + 1 : '';
+            step.addEventListener('click', () => step.classList.toggle('on'));
+            stepSequencer.appendChild(step);
+        }
+
+        // Animate steps
+        let currentStep = 0;
+        setInterval(() => {
+            document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('current', i === currentStep));
+            currentStep = (currentStep + 1) % 16;
+        }, 125);
+
+        // ===== ADSR VISUALIZATION =====
+        function updateADSRVisual() {
+            const attack = getKnobValue('attack');
+            const decay = getKnobValue('decay');
+            const sustain = getKnobValue('sustain');
+            const release = getKnobValue('release');
+            
+            const path = document.getElementById('adsrPath');
+            if (!path) return;
+            
+            const w = 300, h = 100, pad = 5;
+            const total = attack + decay + release + 0.5;
+            
+            const sx = t => pad + (t / total) * (w - 2*pad) * 0.85;
+            const sy = v => pad + (1 - v/100) * (h - 2*pad);
+            
+            path.setAttribute('d', `
+                M${pad},${h-pad}
+                L${sx(0)},${sy(100)}
+                L${sx(attack)},${pad}
+                L${sx(attack+decay)},${sy(sustain)}
+                L${sx(attack+decay+3)},${sy(sustain)}
+                L${sx(attack+decay+3+release)},${h-pad}
+            `);
+        }
+
+        function getKnobValue(paramName) {
+            const knob = document.querySelector(`[data-param="${paramName}"]`);
+            if (!knob) return 0.5;
+            const container = knob.closest('.knob-item') || knob.parentElement;
+            const valEl = container?.querySelector('.knob-value');
+            if (valEl) {
+                const num = parseFloat(valEl.textContent);
+                return isNaN(num) ? parseFloat(knob.dataset.default) : num;
+            }
+            return parseFloat(knob.dataset.default);
+        }
+
+        // ===== WAVEFORM DISPLAY =====
+        function updateWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+            
+            const w = canvas.offsetWidth, h = canvas.offsetHeight;
+            const oscType = document.getElementById('osc1Type')?.value || 'sawtooth';
+            const unison = getKnobValue('unisonVoices');
+            const spread = getKnobValue('unisonSpread');
+            
+            ctx.fillStyle = '#12121a';
+            ctx.fillRect(0, 0, w, h);
+            ctx.strokeStyle = '#00D4FF';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            
+            for (let x = 0; x < w; x++) {
+                const t = (x / w) * Math.PI * 4;
+                let y;
+                
+                switch(oscType) {
+                    case 'sawtooth':
+                        y = ((t % (Math.PI*2)) / (Math.PI*2)) * 2 - 1;
+                        break;
+                    case 'square':
+                        y = Math.sin(t) > 0 ? 1 : -1;
+                        break;
+                    case 'sine':
+                        y = Math.sin(t);
+                        break;
+                    case 'triangle':
+                        y = Math.asin(Math.sin(t)) * 2 / Math.PI;
+                        break;
+                    case 'fm':
+                        y = Math.sin(t + Math.sin(t * 2.5) * 3);
+                        break;
+                    case 'granular':
+                        y = Math.sin(t) * (Math.random() * 0.3 + 0.7);
+                        break;
+                    default:
+                        y = Math.sin(t);
+                }
+                
+                // Add unison thickness
+                if (unison > 1) {
+                    y += Math.sin(t * 1.02 + spread * 0.01) * (spread * 0.002);
+                    y += Math.sin(t * 0.98 - spread * 0.01) * (spread * 0.002);
+                }
+                
+                const py = h/2 - y * (h/2 - 5);
+                x === 0 ? ctx.moveTo(x, py) : ctx.lineTo(x, py);
+            }
+            ctx.stroke();
+        }
+
+        // ===== KEYBOARD =====
+        const keyboard = document.getElementById('keyboard');
+        const notes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+        const keyMap = {'a':0,'w':1,'s':2,'e':3,'d':4,'f':5,'t':6,'g':7,'y':8,'h':9,'u':10,'j':11,'k':12,'o':13,'l':14,'p':15,';':16,"'":17};
+        
+        for (let i = 0; i < 22; i++) {
+            const noteIdx = i % 12;
+            const isBlack = notes[noteIdx].includes('#');
+            const key = document.createElement('div');
+            key.className = `key${isBlack ? ' black' : ''}`;
+            key.dataset.note = `${notes[noteIdx]}${3 + Math.floor(i/12)}`;
+            key.dataset.freq = (440 * Math.pow(2, (i - 9) / 12)).toFixed(1);
+            keyboard.appendChild(key);
+        }
+
+        // Audio Engine
+        let audioCtx = null;
+        let oscillators = new Map();
+        let voiceCount = 0;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playNote(key) {
+            if (key.classList.contains('active')) return;
+            initAudio();
+            key.classList.add('active');
+            
+            const freq = parseFloat(key.dataset.freq);
+            const oscType = document.getElementById('osc1Type')?.value || 'sawtooth';
+            const masterGain = getKnobValue('masterGain');
+            const attack = getKnobValue('attack');
+            const sustain = getKnobValue('sustain');
+            const unison = getKnobValue('unisonVoices');
+            const detune = getKnobValue('unisonDetune');
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(Math.pow(10, masterGain/20) * 0.15, audioCtx.currentTime + attack);
+            gainNode.gain.linearRampToValueAtTime(Math.pow(10, masterGain/20) * 0.15 * sustain/100, audioCtx.currentTime + attack + 0.1);
+            gainNode.connect(audioCtx.destination);
+            
+            const voices = [];
+            for (let v = 0; v < Math.max(1, unison); v++) {
+                const osc = audioCtx.createOscillator();
+                const typeMap = { sawtooth:'sawtooth', square:'square', sine:'sine', triangle:'triangle', noise:'sine', fm:'sine', granular:'sine', additive:'sine' };
+                osc.type = typeMap[oscType] || 'sawtooth';
+                osc.frequency.value = freq * (1 + (v - unison/2) * detune * 0.0001);
+                osc.detune.value = (v - unison/2) * detune * (100/unison);
+                osc.connect(gainNode);
+                osc.start();
+                voices.push(osc);
+            }
+            
+            oscillators.set(key.dataset.note, { voices, gainNode });
+            voiceCount++;
+            updateStatus();
+        }
+
+        function stopNote(key) {
+            if (!key.classList.contains('active')) return;
+            key.classList.remove('active');
+            
+            const data = oscillators.get(key.dataset.note);
+            if (data) {
+                const release = getKnobValue('release');
+                data.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                data.gainNode.gain.setValueAtTime(data.gainNode.gain.value, audioCtx.currentTime);
+                data.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + release);
+                data.voices.forEach(o => o.stop(audioCtx.currentTime + release + 0.1));
+                oscillators.delete(key.dataset.note);
+                
+                setTimeout(() => { voiceCount = Math.max(0, voiceCount - 1); updateStatus(); }, release * 1000);
+            }
+        }
+
+        keyboard.querySelectorAll('.key').forEach((key, i) => {
+            key.addEventListener('mousedown', () => playNote(key));
+            key.addEventListener('mouseup', () => stopNote(key));
+            key.addEventListener('mouseleave', () => stopNote(key));
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.repeat) return;
+            const idx = keyMap[e.key.toLowerCase()];
+            if (idx !== undefined) {
+                const keys = keyboard.querySelectorAll('.key');
+                if (keys[idx]) playNote(keys[idx]);
+            }
+        });
+
+        document.addEventListener('keyup', e => {
+            const idx = keyMap[e.key.toLowerCase()];
+            if (idx !== undefined) {
+                const keys = keyboard.querySelectorAll('.key');
+                if (keys[idx]) stopNote(keys[idx]);
+            }
+        });
+
+        function updateStatus() {
+            document.getElementById('voiceCount').textContent = `${Math.min(voiceCount, 16)} / 16`;
+            document.getElementById('cpuUsage').textContent = `${Math.min(95, voiceCount * 5 + Math.random() * 3).toFixed(0)}%`;
+        }
+
+        // ===== VISUALIZER =====
+        function drawVisualizer() {
+            const canvas = document.getElementById('visualizerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+            
+            const w = canvas.offsetWidth, h = canvas.offsetHeight;
+            ctx.fillStyle = '#12121a';
+            ctx.fillRect(0, 0, w, h);
+            
+            const bars = 64;
+            const barWidth = w / bars - 1;
+            
+            for (let i = 0; i < bars; i++) {
+                const barHeight = (Math.sin(Date.now() * 0.002 + i * 0.2) * 0.5 + 0.5) * 
+                                  (Math.random() * 0.3 + 0.2) * 
+                                  (voiceCount > 0 ? 0.8 : 0.15) * h;
+                
+                const gradient = ctx.createLinearGradient(0, h, 0, h - barHeight);
+                gradient.addColorStop(0, '#00D4FF');
+                gradient.addColorStop(1, '#8B5CF6');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(i * (barWidth + 1), h - barHeight, barWidth, barHeight);
+            }
+            
+            requestAnimationFrame(drawVisualizer);
+        }
+
+        // Initialize
+        updateADSRVisual();
+        updateWaveform();
+        drawVisualizer();
+
+        // Randomize button
+        document.getElementById('randomizeBtn')?.addEventListener('click', () => {
+            knobs.forEach(knob => {
+                const min = parseFloat(knob.dataset.min);
+                const max = parseFloat(knob.dataset.max);
+                const randomVal = min + Math.random() * (max - min);
+                // Trigger visual update by simulating drag
+                const container = knob.closest('.knob-item') || knob.parentElement;
+                const indicator = knob.querySelector('.knob-indicator');
+                const normalized = (randomVal - min) / (max - min);
+                const angle = -135 + normalized * 270;
+                knob.style.setProperty('--value', normalized);
+                if (indicator) indicator.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
+                
+                const valueDisplay = container.querySelector('.knob-value');
+                if (valueDisplay) {
+                    const unit = knob.dataset.unit || '';
+                    if (unit === '%') valueDisplay.textContent = `${Math.round(randomVal)}%`;
+                    else if (unit === 'Hz') valueDisplay.textContent = randomVal >= 1000 ? `${(randomVal/1000).toFixed(1)} kHz` : `${Math.round(randomVal)} Hz`;
+                    else if (unit === 'dB') valueDisplay.textContent = `${randomVal.toFixed(1)} dB`;
+                    else valueDisplay.textContent = Number.isInteger(randomVal) ? randomVal : randomVal.toFixed(2);
+                }
+            });
+            updateADSRVisual();
+            updateWaveform();
+        });
+    </script>
+</body>
+</html>
