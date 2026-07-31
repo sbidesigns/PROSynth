@@ -1,0 +1,979 @@
+/**
+ * PROSynth Standard View Controller
+ * Handles preset browsing, vibe search, patch tools, and view switching
+ */
+
+(function() {
+    'use strict';
+
+    // ===== STATE =====
+    let currentView = 'standard'; // 'standard' or 'advanced'
+    let selectedCategory = 'all';
+    let currentSearchQuery = '';
+    let activePreset = null;
+    let searchTimeout = null;
+
+    // ===== DOM REFERENCES =====
+    const standardView = document.getElementById('standardView');
+    const advancedView = document.querySelector('.plugin-window'); // The original UI
+    const presetListEl = document.getElementById('presetListContainer');
+    const searchInput = document.getElementById('vibeSearchInput');
+    const suggestionsEl = document.getElementById('vibeSuggestions');
+    const categoryFiltersEl = document.getElementById('categoryFilters');
+    const currentPresetNameEl = document.getElementById('currentPresetNameStd');
+    const currentPresetMetaEl = document.getElementById('currentPresetMetaStd');
+
+    // ===== INITIALIZATION =====
+    function initStandardView() {
+        try {
+            if (!standardView) {
+                console.error('❌ Standard View container not found!');
+                return;
+            }
+
+            console.log('🎨 Initializing Standard View...');
+            
+            setupViewToggle();
+            setupVibeSearch();
+            setupCategoryFilters();
+            
+            // Check if preset library is loaded
+            if (typeof ALL_INDUSTRY_PRESETS !== 'undefined') {
+                renderPresetList(ALL_INDUSTRY_PRESETS);
+            } else {
+                console.warn('⚠️ Preset library not loaded yet');
+            }
+            
+            setupPatchTools();
+            setupMiniVisualizers();
+            setupMainVisualizer();  // Initialize the main preview visualizer
+
+            // Show standard view by default
+            showStandardView();
+            
+            console.log('✅ Standard View initialized successfully!');
+        } catch (error) {
+            console.error('❌ Error initializing Standard View:', error);
+            
+            // Fallback: still try to show the view
+            if (standardView) {
+                standardView.classList.add('active');
+                document.body.classList.add('has-standard-view');
+            }
+        }
+    }
+
+    // ===== VIEW TOGGLE =====
+    function setupViewToggle() {
+        // Standard View toggle buttons (in Standard View top bar)
+        const stdBtn = document.getElementById('viewToggleStandard');
+        const advBtn = document.getElementById('viewToggleAdvanced');
+        
+        // Header toggle buttons (in Advanced View header - professional)
+        const headerStdBtn = document.getElementById('viewToggleStdHeader');
+        const headerAdvBtn = document.getElementById('viewToggleAdvHeader');
+        
+        // Back button in Advanced view
+        const backBtn = document.getElementById('backToStandardBtn');
+
+        stdBtn?.addEventListener('click', () => showStandardView());
+        advBtn?.addEventListener('click', () => showAdvancedView());
+        
+        // Header toggle buttons
+        headerStdBtn?.addEventListener('click', () => showStandardView());
+        headerAdvBtn?.addEventListener('click', () => showAdvancedView());
+        
+        backBtn?.addEventListener('click', () => {
+            console.log('◀ Back to Standard clicked');
+            showStandardView();
+        });
+    }
+
+    function showStandardView() {
+        currentView = 'standard';
+        
+        console.log('📱 Showing Standard View...');
+        
+        // Add full-screen class to body
+        document.body.classList.add('has-standard-view');
+        
+        // HIDE advanced view (original plugin window) - FORCE IT
+        if (advancedView) {
+            advancedView.style.display = 'none !important';
+            advancedView.style.visibility = 'hidden';
+            advancedView.style.opacity = '0';
+            advancedView.style.pointerEvents = 'none';
+        }
+        
+        // Also hide the entire plugin-container if it exists
+        const pluginContainer = document.querySelector('.plugin-container');
+        if (pluginContainer && !pluginContainer.contains(standardView)) {
+            pluginContainer.style.display = 'none';
+        }
+        
+        // SHOW standard view - FORCE IT WITH INLINE STYLES
+        standardView.classList.add('active');
+        standardView.style.display = 'flex';
+        standardView.style.visibility = 'visible';
+        standardView.style.opacity = '1';
+        standardView.style.position = 'fixed';
+        standardView.style.top = '0';
+        standardView.style.left = '0';
+        standardView.style.width = '100vw';
+        standardView.style.height = '100vh';
+        standardView.style.zIndex = '99999';
+        
+        // Update toggle buttons (Standard View top bar)
+        document.getElementById('viewToggleStandard')?.classList.add('active');
+        document.getElementById('viewToggleAdvanced')?.classList.remove('active');
+        
+        // Update header toggle buttons (Advanced View header)
+        document.getElementById('viewToggleStdHeader')?.classList.add('active');
+        document.getElementById('viewToggleAdvHeader')?.classList.remove('active');
+
+        console.log('✅ Standard View should now be VISIBLE!');
+        
+        // Debug: Log what's visible
+        setTimeout(() => {
+            const rect = standardView.getBoundingClientRect();
+            console.log('📐 Standard View dimensions:', rect.width, 'x', rect.height);
+            console.log('📐 Standard View display:', getComputedStyle(standardView).display);
+        }, 100);
+    }
+
+    function showAdvancedView() {
+        currentView = 'advanced';
+        
+        console.log('⚙️ Showing Advanced View...');
+        
+        // Remove full-screen class from body
+        document.body.classList.remove('has-standard-view');
+        
+        // HIDE standard view - FORCE IT
+        standardView.classList.remove('active');
+        standardView.style.display = 'none';
+        standardView.style.visibility = 'hidden';
+        standardView.style.opacity = '0';
+        standardView.style.pointerEvents = 'none';
+        
+        // Show advanced view (original plugin window)
+        if (advancedView) {
+            advancedView.style.display = '';
+            advancedView.style.visibility = 'visible';
+            advancedView.style.opacity = '1';
+            advancedView.style.pointerEvents = 'auto';
+        }
+        
+        // Show plugin-container again
+        const pluginContainer = document.querySelector('.plugin-container');
+        if (pluginContainer) {
+            pluginContainer.style.display = '';
+        }
+        
+        // Update toggle buttons (Standard View top bar)
+        document.getElementById('viewToggleStandard')?.classList.remove('active');
+        document.getElementById('viewToggleAdvanced')?.classList.add('active');
+        
+        // Update header toggle buttons (Advanced View header)
+        document.getElementById('viewToggleStdHeader')?.classList.remove('active');
+        document.getElementById('viewToggleAdvHeader')?.classList.add('active');
+
+        console.log('✅ Advanced View should now be VISIBLE!');
+    }
+
+    window.toggleView = function(view) {
+        if (view === 'standard') showStandardView();
+        else showAdvancedView();
+    };
+
+    // ===== VIBE SEARCH =====
+    function setupVibeSearch() {
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', handleSearchInput);
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.length >= 2) {
+                showSuggestions();
+            }
+        });
+        searchInput.addEventListener('blur', () => {
+            setTimeout(hideSuggestions, 200);
+        });
+
+        // Keyboard navigation for suggestions
+        searchInput.addEventListener('keydown', handleSearchKeydown);
+    }
+
+    function handleSearchInput(e) {
+        const query = e.target.value;
+        currentSearchQuery = query;
+
+        // Debounce search results
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 150);
+
+        // Update suggestions
+        if (query.length >= 2) {
+            updateSuggestions(query);
+            showSuggestions();
+        } else {
+            hideSuggestions();
+            renderPresetList(getFilteredPresets());
+        }
+    }
+
+    function handleSearchKeydown(e) {
+        const items = suggestionsEl?.querySelectorAll('.vibe-suggestion-item');
+        if (!items || items.length === 0) return;
+
+        const selected = suggestionsEl.querySelector('.selected');
+        const selectedIndex = Array.from(items).indexOf(selected);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextIndex = selectedIndex < items.length - 1 ? selectedIndex + 1 : 0;
+            selectSuggestionItem(items[nextIndex]);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevIndex = selectedIndex > 0 ? selectedIndex - 1 : items.length - 1;
+            selectSuggestionItem(items[prevIndex]);
+        } else if (e.key === 'Enter' && selected) {
+            e.preventDefault();
+            selected.click();
+        }
+    }
+
+    function selectSuggestionItem(item) {
+        suggestionsEl.querySelectorAll('.vibe-suggestion-item').forEach(i => i.classList.remove('selected'));
+        item?.classList.add('selected');
+    }
+
+    function updateSuggestions(query) {
+        const suggestions = window.vibeSearchEngine?.getSuggestions(query) || [];
+        
+        if (suggestions.length === 0 || !suggestionsEl) {
+            hideSuggestions();
+            return;
+        }
+
+        suggestionsEl.innerHTML = suggestions.map(sugg => {
+            const count = getFilteredPresets().filter(p => 
+                p.vibe.some(v => v.toLowerCase() === sugg.toLowerCase()) ||
+                p.tags.some(t => t.toLowerCase() === sugg.toLowerCase())
+            ).length;
+            
+            return `<div class="vibe-suggestion-item" data-vibe="${sugg}">
+                <span>🔍</span>
+                <span>${sugg}</span>
+                <span class="suggestion-count">${count}</span>
+            </div>`;
+        }).join('');
+
+        // Add click handlers
+        suggestionsEl.querySelectorAll('.vibe-suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                searchInput.value = item.dataset.vibe;
+                handleSearchInput({ target: searchInput });
+                hideSuggestions();
+            });
+        });
+    }
+
+    function showSuggestions() {
+        suggestionsEl?.classList.add('active');
+    }
+
+    function hideSuggestions() {
+        suggestionsEl?.classList.remove('active');
+    }
+
+    function performSearch(query) {
+        const filtered = query.trim() 
+            ? window.vibeSearchEngine?.search(query) || []
+            : getFilteredPresets();
+        
+        renderPresetList(filtered);
+    }
+
+    // ===== CATEGORY FILTERS =====
+    function setupCategoryFilters() {
+        if (!categoryFiltersEl) return;
+
+        const categories = [
+            { id: 'all', name: 'All', icon: '🎵' },
+            { id: 'leads', name: 'Leads', icon: '🎸' },
+            { id: 'basses', name: 'Basses', icon: '🎵' },
+            { id: 'pads', name: 'Pads', icon: '☁️' },
+            { id: 'plucks', name: 'Plucks/Keys', icon: '🎹' },
+            { id: 'fx', name: 'FX/Textures', icon: '✨' },
+            { id: 'orchestral', name: 'Orchestral', icon: '🎻' },
+            { id: 'drums', name: 'Drums/Perc', icon: '🥁' }
+        ];
+
+        categoryFiltersEl.innerHTML = categories.map(cat => `
+            <button class="category-filter-btn ${selectedCategory === cat.id ? 'active' : ''}" 
+                    data-category="${cat.id}">
+                <span class="cat-icon">${cat.icon}</span>${cat.name}
+            </button>
+        `).join('');
+
+        categoryFiltersEl.querySelectorAll('.category-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedCategory = btn.dataset.category;
+                
+                // Update active state
+                categoryFiltersEl.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Re-render with filter
+                performSearch(currentSearchQuery);
+            });
+        });
+    }
+
+    function getFilteredPresets() {
+        let presets = ALL_INDUSTRY_PRESETS;
+        
+        if (selectedCategory !== 'all') {
+            presets = INDUSTRY_PRESETS[selectedCategory] || [];
+        }
+
+        return presets;
+    }
+
+    // ===== PRESET LIST RENDERING =====
+    function renderPresetList(presets) {
+        if (!presetListEl) return;
+
+        if (presets.length === 0) {
+            presetListEl.innerHTML = `
+                <div class="no-results">
+                    <div class="no-results-icon">🔍</div>
+                    <p>No presets found for "${currentSearchQuery}"</p>
+                    <p style="margin-top:8px;font-size:11px;">Try terms like "Soft Lead", "Warm Pad", "Acid Bass"</p>
+                </div>
+            `;
+            return;
+        }
+
+        presetListEl.innerHTML = presets.map((preset, idx) => {
+            const category = Object.keys(INDUSTRY_PRESETS).find(key => 
+                INDUSTRY_PRESETS[key].includes(preset)
+            ) || 'unknown';
+            
+            const isActive = activePreset && activePreset.name === preset.name;
+
+            return `
+                <div class="preset-card ${isActive ? 'active' : ''}" data-preset-idx="${idx}">
+                    <div class="preset-card-header">
+                        <span class="preset-name">${preset.name}</span>
+                        <span class="preset-category-badge">${category}</span>
+                    </div>
+                    <div class="preset-artist">🎤 ${preset.artist}</div>
+                    <div class="preset-song-ref">💿 "${preset.song}"</div>
+                    <div class="preset-tags">
+                        ${preset.tags.slice(0, 4).map(tag => `<span class="preset-tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="preset-vibes">
+                        ${preset.vibe.slice(0, 3).map(vibe => `<span class="preset-vibe">${vibe}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add click handlers
+        presetListEl.querySelectorAll('.preset-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const idx = parseInt(card.dataset.presetIdx);
+                selectPreset(presets[idx]);
+            });
+
+            // Double click to load immediately
+            card.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(card.dataset.presetIdx);
+                loadPresetImmediately(presets[idx]);
+            });
+        });
+    }
+
+    function selectPreset(preset) {
+        activePreset = preset;
+        
+        // Update visual state
+        presetListEl.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+        event.currentTarget?.classList.add('active');
+
+        // Update current display
+        if (currentPresetNameEl) {
+            currentPresetNameEl.textContent = preset.name;
+        }
+        if (currentPresetMetaEl) {
+            currentPresetMetaEl.textContent = `${preset.artist} • ${Object.keys(INDUSTRY_PRESETS).find(k => INDUSTRY_PRESETS[k].includes(preset))}`;
+        }
+
+        // Show detail popup on single click after short delay
+        showPresetDetail(preset);
+    }
+
+    // ===== PARAMETER MAPPING (Preset names → Actual Knob names) =====
+    const PARAMETER_MAP = {
+        // Oscillator
+        'oscType': 'osc1Type',
+        'oscPitch': 'osc1Pitch',
+        'oscDetune': 'osc1Detune',
+        // Filter  
+        'filterCutoff': 'filter1Cutoff',
+        'filterReso': 'filter1Reso',
+        'filterEnv': 'filter1Env',
+        // Reverb
+        'reverbSize': 'revSize',
+        'reverbDecay': 'revDecay',
+        'reverbMix': 'revMix',
+        // Unison
+        'unison': 'unisonVoices'
+    };
+
+    /**
+     * Map preset parameters to actual knob parameters
+     * Converts friendly preset names to actual data-param names
+     */
+    function mapPresetParams(presetParams) {
+        const mapped = {};
+        Object.entries(presetParams).forEach(([key, value]) => {
+            const mappedKey = PARAMETER_MAP[key] || key;
+            mapped[mappedKey] = value;
+        });
+        
+        // Ensure critical defaults for audio engine
+        if (!mapped.osc1Type) mapped.osc1Type = 'sawtooth';
+        if (!mapped.unisonVoices) mapped.unisonVoices = 1;
+        if (!mapped.unisonDetune) mapped.unisonDetune = 10;
+        if (!mapped.attack) mapped.attack = 0.01;
+        if (!mapped.decay) mapped.decay = 0.2;
+        if (!mapped.sustain) mapped.sustain = 70;
+        if (!mapped.release) mapped.release = 0.3;
+        if (!mapped.filter1Cutoff) mapped.filter1Cutoff = 8000;
+        if (!mapped.filter1Reso) mapped.filter1Reso = 1;
+        
+        return mapped;
+    }
+
+    function loadPresetImmediately(preset) {
+        activePreset = preset;
+        
+        // Map preset parameters to actual knob parameters
+        const mappedParams = mapPresetParams(preset.params);
+        
+        console.log('🎵 Loading preset:', preset.name);
+        console.log('   Mapped params:', mappedParams);
+        
+        // Apply parameters
+        if (typeof setAllKnobValues === 'function') {
+            setAllKnobValues(mappedParams);
+        }
+
+        // Update display
+        if (currentPresetNameEl) {
+            currentPresetNameEl.textContent = `▶ ${preset.name}`;
+        }
+
+        // Notification
+        if (typeof showNotification === 'function') {
+            showNotification(`🎹 Loaded: ${preset.name}`, true);
+        }
+
+        console.log('🎵 Loaded preset:', preset.name, '-', preset.artist);
+    }
+
+    // ===== PRESET DETAIL POPUP =====
+    function showPresetDetail(preset) {
+        const popup = document.getElementById('presetDetailPopup');
+        const backdrop = document.getElementById('popupBackdrop');
+        
+        if (!popup || !backdrop) return;
+
+        const analysis = window.PatchTools?.analyzePatch(preset.params) || {};
+
+        popup.querySelector('.detail-title-group h3').textContent = preset.name;
+        popup.querySelector('.detail-artist').textContent = preset.artist;
+        popup.querySelector('.detail-song').textContent = `"${preset.song}"`;
+        
+        // Tags
+        popup.querySelector('.detail-tags-row').innerHTML = 
+            preset.tags.map(t => `<span class="preset-tag">${t}</span>`).join('');
+        
+        // Vibes
+        popup.querySelector('.detail-vibes-row').innerHTML = 
+            preset.vibe.map(v => `<span class="preset-vibe">${v}</span>`).join('');
+        
+        // Analysis bars
+        if (analysis.brightness !== undefined) {
+            popup.querySelector('[data-analysis="brightness"] .analysis-bar-value').textContent = Math.round(analysis.brightness) + '%';
+            popup.querySelector('[data-analysis="brightness"] .analysis-bar-fill-inner').style.width = analysis.brightness + '%';
+        }
+        if (analysis.warmth !== undefined) {
+            popup.querySelector('[data-analysis="warmth"] .analysis-bar-value').textContent = Math.round(analysis.warmth) + '%';
+            popup.querySelector('[data-analysis="warmth"] .analysis-bar-fill-inner').style.width = analysis.warmth + '%';
+        }
+        if (analysis.thickness !== undefined) {
+            popup.querySelector('[data-analysis="thickness"] .analysis-bar-value').textContent = Math.round(analysis.thickness) + '%';
+            popup.querySelector('[data-analysis="thickness"] .analysis-bar-fill-inner').style.width = analysis.thickness + '%';
+        }
+
+        // Load button handler
+        popup.querySelector('.btn-primary').onclick = () => {
+            loadPresetImmediately(preset);
+            closePopup();
+        };
+
+        // Close button
+        popup.querySelector('.detail-close').onclick = closePopup;
+        backdrop.onclick = closePopup;
+
+        backdrop.classList.add('active');
+        popup.classList.add('active');
+    }
+
+    function closePopup() {
+        document.getElementById('presetDetailPopup')?.classList.remove('active');
+        document.getElementById('popupBackdrop')?.classList.remove('active');
+    }
+
+    // ===== PATCH TOOLS =====
+    function setupPatchTools() {
+        // Morph slider
+        const morphSlider = document.getElementById('morphAmountSlider');
+        morphSlider?.addEventListener('input', (e) => {
+            const value = e.target.value / 100;
+            document.getElementById('morphValueDisplay').textContent = Math.round(value * 100) + '%';
+            
+            if (activePreset && typeof getAllKnobValues === 'function') {
+                const currentParams = getAllKnobValues();
+                const morphed = window.PatchTools?.morph(currentParams, activePreset.params, value);
+                if (morphed && typeof setAllKnobValues === 'function') {
+                    setAllKnobValues(morphed);
+                }
+            }
+        });
+
+        // Tool cards
+        document.querySelectorAll('.patch-tool-card[data-tool]').forEach(card => {
+            card.addEventListener('click', () => applyPatchTool(card.dataset.tool));
+        });
+    }
+
+    function applyPatchTool(toolId) {
+        if (!activePreset || typeof getAllKnobValues !== 'function') {
+            if (typeof showNotification === 'function') {
+                showNotification('Select a preset first!', false);
+            }
+            return;
+        }
+
+        const currentParams = getAllKnobValues();
+        const baseParams = mapPresetParams(activePreset.params);
+        let newParams;
+
+        switch (toolId) {
+            case 'variation-low':
+                newParams = window.PatchTools?.createVariation(baseParams, 'low');
+                break;
+            case 'variation-med':
+                newParams = window.PatchTools?.createVariation(baseParams, 'medium');
+                break;
+            case 'variation-high':
+                newParams = window.PatchTools?.createVariation(baseParams, 'high');
+                break;
+            case 'randomize':
+                newParams = window.PatchTools?.smartRandomize(baseParams, { variance: 0.3 });
+                break;
+            case 'warmer':
+                newParams = {...baseParams, filter1Cutoff: (baseParams.filter1Cutoff || 2000) * 0.7};
+                break;
+            case 'brighter':
+                newParams = {...baseParams, filter1Cutoff: (baseParams.filter1Cutoff || 2000) * 1.3};
+                break;
+            case 'thicken':
+                newParams = {...baseParams, unisonVoices: Math.min(16, (baseParams.unisonVoices || 1) + 2)};
+                break;
+            default:
+                return;
+        }
+
+        if (newParams && typeof setAllKnobValues === 'function') {
+            setAllKnobValues(newParams);
+            if (typeof showNotification === 'function') {
+                showNotification(`🛠️ Applied: ${toolId.replace('-', ' ')}`, true);
+            }
+        }
+    }
+
+    // ===== MINI VISUALIZERS =====
+    function setupMiniVisualizers() {
+        // Setup mini waveform canvas
+        const waveCanvas = document.getElementById('miniWaveformCanvas');
+        if (waveCanvas) {
+            const ctx = waveCanvas.getContext('2d');
+            
+            function drawMiniWaveform() {
+                const w = waveCanvas.width = waveCanvas.offsetWidth * 2;
+                const h = waveCanvas.height = waveCanvas.offsetHeight * 2;
+                
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-dark') || '#0a0a0f';
+                ctx.fillRect(0, 0, w, h);
+                
+                // Draw animated waveform
+                ctx.strokeStyle = '#00D4FF';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                
+                const time = Date.now() / 1000;
+                for (let x = 0; x < w; x++) {
+                    const y = h/2 + Math.sin(x * 0.03 + time * 3) * (h * 0.25) +
+                              Math.sin(x * 0.08 + time * 5) * (h * 0.12) +
+                              Math.sin(x * 0.02 + time * 1.5) * (h * 0.15);
+                    
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                
+                ctx.stroke();
+                
+                requestAnimationFrame(drawMiniWaveform);
+            }
+            
+            drawMiniWaveform();
+        }
+
+        // Setup mini spectrum canvas
+        const specCanvas = document.getElementById('miniSpectrumCanvas');
+        if (specCanvas) {
+            const ctx = specCanvas.getContext('2d');
+            
+            function drawMiniSpectrum() {
+                const w = specCanvas.width = specCanvas.offsetWidth * 2;
+                const h = specCanvas.height = specCanvas.offsetHeight * 2;
+                
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-dark') || '#0a0a0f';
+                ctx.fillRect(0, 0, w, h);
+                
+                // Draw frequency bars
+                const barCount = 16;
+                const barWidth = (w / barCount) - 4;
+                const time = Date.now() / 500;
+                
+                for (let i = 0; i < barCount; i++) {
+                    const height = (Math.sin(time + i * 0.5) * 0.5 + 0.5) * h * 0.8 + h * 0.15;
+                    const hue = 180 + (i / barCount) * 60;
+                    
+                    ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.9)`;
+                    ctx.fillRect(i * (barWidth + 4) + 2, h - height, barWidth, height);
+                }
+                
+                requestAnimationFrame(drawMiniSpectrum);
+            }
+            
+            drawMiniSpectrum();
+        }
+    }
+
+    // ===== MAIN VISUALIZER (Large Preview Area) =====
+    let mainVizMode = 'waveform';
+    let mainVizAnimationId = null;
+    let mainVizCanvas = null;
+    let mainVizCtx = null;
+
+    function setupMainVisualizer() {
+        mainVizCanvas = document.getElementById('mainVisualizerCanvas');
+        if (!mainVizCanvas) return;
+        
+        mainVizCtx = mainVizCanvas.getContext('2d');
+        
+        // Setup mode buttons
+        document.querySelectorAll('.viz-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.viz-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mainVizMode = btn.dataset.mode;
+                console.log('🎨 Visualizer mode:', mainVizMode);
+            });
+        });
+
+        // Start animation
+        drawMainVisualizer();
+        
+        // Handle resize
+        const resizeObserver = new ResizeObserver(() => {
+            // Canvas will auto-resize on next frame
+        });
+        resizeObserver.observe(mainVizCanvas.parentElement);
+    }
+
+    function drawMainVisualizer() {
+        if (!mainVizCanvas || !mainVizCtx) return;
+
+        const w = mainVizCanvas.width = mainVizCanvas.offsetWidth * 2;
+        const h = mainVizCanvas.height = mainVizCanvas.offsetHeight * 2;
+        
+        // Clear with background
+        mainVizCtx.fillStyle = '#12121c';
+        mainVizCtx.fillRect(0, 0, w, h);
+
+        // Draw grid lines
+        mainVizCtx.strokeStyle = 'rgba(42, 42, 61, 0.5)';
+        mainVizCtx.lineWidth = 1;
+        
+        // Horizontal center line
+        mainVizCtx.beginPath();
+        mainVizCtx.moveTo(0, h / 2);
+        mainVizCtx.lineTo(w, h / 2);
+        mainVizCtx.stroke();
+        
+        // Subtle grid
+        for (let i = 1; i < 4; i++) {
+            mainVizCtx.globalAlpha = 0.3;
+            mainVizCtx.beginPath();
+            mainVizCtx.moveTo(0, (h / 4) * i);
+            mainVizCtx.lineTo(w, (h / 4) * i);
+            mainVizCtx.stroke();
+        }
+        mainVizCtx.globalAlpha = 1;
+
+        const time = Date.now() / 1000;
+
+        switch (mainVizMode) {
+            case 'waveform':
+                drawWaveformMode(w, h, time);
+                break;
+            case 'spectrum':
+                drawSpectrumMode(w, h, time);
+                break;
+            case 'circular':
+                drawCircularMode(w, h, time);
+                break;
+        }
+
+        mainVizAnimationId = requestAnimationFrame(drawMainVisualizer);
+    }
+
+    function drawWaveformMode(w, h, time) {
+        // Main waveform glow
+        mainVizCtx.shadowBlur = 20;
+        mainVizCtx.shadowColor = '#00D4FF';
+        mainVizCtx.strokeStyle = '#00D4FF';
+        mainVizCtx.lineWidth = 2.5;
+        mainVizCtx.beginPath();
+
+        for (let x = 0; x < w; x++) {
+            const normalizedX = x / w;
+            // Complex waveform with multiple frequencies
+            const y = h / 2 + 
+                Math.sin(normalizedX * 12 + time * 4) * (h * 0.28) +
+                Math.sin(normalizedX * 25 + time * 7) * (h * 0.12) +
+                Math.sin(normalizedX * 5 + time * 1.5) * (h * 0.18) +
+                Math.sin(normalizedX * 40 + time * 10) * (h * 0.05);
+            
+            if (x === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        mainVizCtx.stroke();
+
+        // Secondary waveform (slightly offset, different color)
+        mainVizCtx.shadowBlur = 15;
+        mainVizCtx.shadowColor = '#8B5CF6';
+        mainVizCtx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
+        mainVizCtx.lineWidth = 1.5;
+        mainVizCtx.beginPath();
+
+        for (let x = 0; x < w; x++) {
+            const normalizedX = x / w;
+            const y = h / 2 + 
+                Math.sin(normalizedX * 15 + time * 5 + 1) * (h * 0.22) +
+                Math.sin(normalizedX * 30 + time * 8) * (h * 0.08);
+            
+            if (x === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        mainVizCtx.stroke();
+
+        mainVizCtx.shadowBlur = 0;
+    }
+
+    function drawSpectrumMode(w, h, time) {
+        const barCount = 64;
+        const barWidth = (w / barCount) - 3;
+        const gap = 3;
+
+        for (let i = 0; i < barCount; i++) {
+            // Simulated frequency data with animation
+            const freq = i / barCount;
+            const baseHeight = Math.pow(1 - freq, 0.5); // Bass boost
+            
+            // Multiple oscillating components
+            let height = baseHeight * 0.4 + 
+                Math.sin(time * 3 + i * 0.3) * 0.15 +
+                Math.sin(time * 7 + i * 0.8) * 0.1 +
+                Math.sin(time * 1.5 + i * 0.15) * 0.2;
+            
+            // Add some randomness/sparkle
+            height += Math.sin(time * 20 + i * 5) * 0.05;
+            
+            height = Math.max(0.02, Math.min(0.95, height)) * h * 0.85;
+
+            const x = i * (barWidth + gap) + gap / 2;
+            const hue = 180 + (i / barCount) * 80; // Cyan to purple gradient
+            
+            // Bar glow
+            mainVizCtx.shadowBlur = 12;
+            mainVizCtx.shadowColor = `hsla(${hue}, 90%, 60%, 0.8)`;
+            
+            // Gradient fill for each bar
+            const gradient = mainVizCtx.createLinearGradient(x, h, x, h - height);
+            gradient.addColorStop(0, `hsla(${hue}, 90%, 55%, 0.9)`);
+            gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, 0.8)`);
+            gradient.addColorStop(1, `hsla(${hue + 20}, 95%, 75%, 0.95)`);
+            
+            mainVizCtx.fillStyle = gradient;
+            
+            // Rounded top for bars
+            const radius = barWidth / 2;
+            mainVizCtx.beginPath();
+            mainVizCtx.roundRect(x, h - height, barWidth, height, [radius, radius, 0, 0]);
+            mainVizCtx.fill();
+        }
+
+        mainVizCtx.shadowBlur = 0;
+
+        // Draw frequency labels
+        mainVizCtx.fillStyle = 'rgba(136, 136, 160, 0.6)';
+        mainVizCtx.font = `${Math.max(9, w * 0.014)}px -apple-system, sans-serif`;
+        mainVizCtx.textAlign = 'center';
+        mainVizCtx.fillText('20Hz', 20, h - 8);
+        mainVizCtx.fillText('200Hz', w * 0.2, h - 8);
+        mainVizCtx.fillText('2kHz', w * 0.5, h - 8);
+        mainVizCtx.fillText('20kHz', w - 20, h - 8);
+    }
+
+    function drawCircularMode(w, h, time) {
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const baseRadius = Math.min(w, h) * 0.32;
+
+        // Outer ring (static guide)
+        mainVizCtx.strokeStyle = 'rgba(42, 42, 61, 0.6)';
+        mainVizCtx.lineWidth = 1;
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+        mainVizCtx.stroke();
+
+        // Inner ring
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, baseRadius * 0.6, 0, Math.PI * 2);
+        mainVizCtx.stroke();
+
+        // Animated circular waveform
+        const points = 128;
+        
+        // Glow layer
+        mainVizCtx.shadowBlur = 25;
+        mainVizCtx.shadowColor = '#00D4FF';
+
+        mainVizCtx.strokeStyle = '#00D4FF';
+        mainVizCtx.lineWidth = 2.5;
+        mainVizCtx.beginPath();
+
+        for (let i = 0; i <= points; i++) {
+            const angle = (i / points) * Math.PI * 2 - Math.PI / 2;
+            
+            // Multiple wave components radiating outward
+            const wave1 = Math.sin(angle * 8 + time * 4) * (baseRadius * 0.18);
+            const wave2 = Math.sin(angle * 16 + time * 7) * (baseRadius * 0.08);
+            const wave3 = Math.sin(angle * 3 + time * 1.5) * (baseRadius * 0.12);
+            const wave4 = Math.sin(angle * 24 + time * 11) * (baseRadius * 0.04);
+            
+            const r = baseRadius + wave1 + wave2 + wave3 + wave4;
+            
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+
+            if (i === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        
+        mainVizCtx.closePath();
+        mainVizCtx.stroke();
+
+        // Secondary inner shape (purple)
+        mainVizCtx.shadowBlur = 18;
+        mainVizCtx.shadowColor = '#8B5CF6';
+        mainVizCtx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+        mainVizCtx.lineWidth = 1.5;
+        mainVizCtx.beginPath();
+
+        for (let i = 0; i <= points; i++) {
+            const angle = (i / points) * Math.PI * 2 - Math.PI / 2;
+            
+            const wave1 = Math.sin(angle * 10 + time * 5 + 2) * (baseRadius * 0.14);
+            const wave2 = Math.sin(angle * 20 + time * 8) * (baseRadius * 0.06);
+            
+            const r = baseRadius * 0.65 + wave1 + wave2;
+            
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+
+            if (i === 0) mainVizCtx.moveTo(x, y);
+            else mainVizCtx.lineTo(x, y);
+        }
+        
+        mainVizCtx.closePath();
+        mainVizCtx.stroke();
+
+        mainVizCtx.shadowBlur = 0;
+
+        // Center dot
+        mainVizCtx.fillStyle = '#00D4FF';
+        mainVizCtx.beginPath();
+        mainVizCtx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        mainVizCtx.fill();
+
+        // Radial lines (like clock markers)
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+            const innerR = baseRadius * 0.92;
+            const outerR = baseRadius * 0.98;
+            
+            mainVizCtx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+            mainVizCtx.lineWidth = 1;
+            mainVizCtx.beginPath();
+            mainVizCtx.moveTo(
+                centerX + Math.cos(angle) * innerR,
+                centerY + Math.sin(angle) * innerR
+            );
+            mainVizCtx.lineTo(
+                centerX + Math.cos(angle) * outerR,
+                centerY + Math.sin(angle) * outerR
+            );
+            mainVizCtx.stroke();
+        }
+    }
+
+    // ===== INITIALIZE ON DOM READY =====
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStandardView);
+    } else {
+        initStandardView();
+    }
+
+    // Expose public API
+    window.StandardView = {
+        showStandard: showStandardView,
+        showAdvanced: showAdvancedView,
+        getCurrentView: () => currentView,
+        loadPreset: loadPresetImmediately,
+        getPresetLibrary: () => ALL_INDUSTRY_PRESETS
+    };
+
+})();
